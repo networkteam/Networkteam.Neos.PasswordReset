@@ -1,0 +1,20 @@
+{
+    "description": "",
+    "type": "neos-package",
+    "name": "networkteam/neos-passwordreset",
+    "require": {
+        "neos/fusion-afx": "*",
+        "neos/neos": "*",
+        "donatj/phpuseragentparser": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Networkteam\\Neos\\PasswordReset\\": "Classes/"
+        }
+    },
+    "extra": {
+        "neos": {
+            "package-key": "Networkteam.Neos.PasswordReset"
+        }
+    }
+}

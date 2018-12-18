@@ -1,0 +1,9 @@
+-
+  name: 'Password Reset Manager'
+  uriPattern: 'password-reset(/{@action}).{@format}'
+  defaults:
+    '@package': 'Networkteam.Neos.PasswordReset'
+    '@controller': 'PasswordManagement'
+    '@format': 'html'
+    '@action' : 'index'
+  appendExceedingArguments: true

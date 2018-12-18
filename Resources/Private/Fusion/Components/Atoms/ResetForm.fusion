@@ -1,0 +1,34 @@
+prototype(Networkteam.Neos.PasswordReset:Components.Atoms.ResetForm) < prototype(Neos.Neos:ContentComponent) {
+    formAction = Neos.Fusion:UriBuilder {
+        package = 'Networkteam.Neos.PasswordReset'
+        controller = 'PasswordManagement'
+        action = 'reset'
+    }
+
+    token = ${String.htmlSpecialChars(request.httpRequest.arguments.token)}
+    nodeIdentifier = ${q(node).property('_identifier')}
+
+    renderer = afx`
+        <div class="password-reset">
+            <form action={props.formAction} method="post">
+                <label for="newPassword">New Password:</label>
+                <input type="text" name="newPassword" />
+
+                <label for="passwordRepeat">Repeat password:</label>
+                <input type="text" name="passwordRepeat" />
+                <input type="hidden" name="token" value={props.token} />
+                <input type="hidden" name="nodeIdentifier" value={node.identifier} />
+                <button class="btn btn-primary" type="submit">Set new Password</button>
+            </form>
+        </div>
+    `
+
+    @cache {
+        mode = 'uncached'
+        context {
+            1 = 'node'
+            2 = 'request'
+            3 = 'documentNode'
+        }
+    }
+}

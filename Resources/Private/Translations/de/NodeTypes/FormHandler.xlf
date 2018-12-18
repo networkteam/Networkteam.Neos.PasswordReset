@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='utf-8'?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+	<file original="" product-name="Networkteam.Neos.PasswordReset" source-language="en" target-language="de" datatype="plaintext">
+		<body>
+			<trans-unit id="ui.label" xml:space="preserve" approved="yes">
+				<source>Password Reset Handler</source>
+				<target state="translated">Password Reset Handler</target>
+			</trans-unit>
+		</body>
+	</file>
+</xliff>

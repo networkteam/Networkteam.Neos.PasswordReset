@@ -1,0 +1,26 @@
+Neos:
+  Neos:
+    userInterface:
+      translation:
+        autoInclude:
+          Networkteam.Neos.PasswordReset:
+          - 'NodeTypes/*'
+    fusion:
+      autoInclude:
+        'Networkteam.Neos.PasswordReset': true
+  Flow:
+    mvc:
+      routes:
+        'Networkteam.Neos.PasswordReset': true
+
+Networkteam:
+  Neos:
+    PasswordReset:
+      authenticationProviders:
+        - Networkteam.Neos.FrontendLogin:Frontend
+      senderAddress: 'no-reply@organisation.org'
+      templatePaths:
+        noAccountMailHtml: 'resource://Networkteam.Neos.PasswordReset/Private/Templates/Mail/password-reset-help.html'
+        noAccountMailTxt: 'resource://Networkteam.Neos.PasswordReset/Private/Templates/Mail/password-reset-help.txt'
+        resetPasswordMailHtml: 'resource://Networkteam.Neos.PasswordReset/Private/Templates/Mail/password-reset-link.html'
+        resetPasswordMailTxt: 'resource://Networkteam.Neos.PasswordReset/Private/Templates/Mail/password-reset-link.txt'

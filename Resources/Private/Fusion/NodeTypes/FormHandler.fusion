@@ -1,0 +1,38 @@
+prototype(Networkteam.Neos.PasswordReset:FormHandler) < prototype(Neos.Neos:ContentComponent) {
+
+    renderer = Neos.Fusion:Case {
+        requestAccepted {
+            condition = ${request.httpRequest.arguments.resetEmail}
+            renderer = Networkteam.Neos.PasswordReset:Components.Atoms.RequestAccepted
+        }
+
+        resetForm {
+            condition = ${request.httpRequest.arguments.token}
+            renderer = Networkteam.Neos.PasswordReset:Components.Atoms.ResetForm
+        }
+
+        resetSucceeded {
+            condition = ${request.httpRequest.arguments.resetSuccess == 'true'}
+            renderer = Networkteam.Neos.PasswordReset:Components.Atoms.ResetSucceeded
+        }
+
+        resetError {
+            condition = ${request.httpRequest.arguments.resetSuccess == 'false'}
+            renderer = Networkteam.Neos.PasswordReset:Components.Atoms.ResetError
+        }
+
+        requestForm {
+            condition = ${true}
+            renderer = Networkteam.Neos.PasswordReset:Components.Atoms.RequestForm
+        }
+    }
+
+    @cache {
+        mode = 'uncached'
+        context {
+            1 = 'request'
+            2 = 'node'
+            3 = 'documentNode'
+        }
+    }
+}

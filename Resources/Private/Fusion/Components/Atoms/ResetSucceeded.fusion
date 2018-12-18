@@ -1,0 +1,11 @@
+prototype(Networkteam.Neos.PasswordReset:Components.Atoms.ResetSucceeded) < prototype(Neos.Neos:ContentComponent) {
+    renderer = afx`
+        <div class="password-reset">
+            <p>The password was reset, login with the new password.</p>
+        </div>
+    `
+
+    @cache {
+        mode = 'cached'
+    }
+}

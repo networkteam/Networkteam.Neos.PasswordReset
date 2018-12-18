@@ -1,0 +1,33 @@
+prototype(Networkteam.Neos.PasswordReset:Components.Atoms.ResetError) < prototype(Neos.Neos:ContentComponent) {
+
+    errorMessage = Neos.Fusion:Case {
+        invalidToken {
+            condition = ${request.httpRequest.arguments.error == 'invalidToken'}
+            renderer = 'The token was invalid, request a new token'
+        }
+        passwordMissmatch {
+            condition = ${request.httpRequest.arguments.error == 'passwordNoMatch'}
+            renderer = 'The provided passwords did not match'
+        }
+
+        default {
+            condition = ${true}
+            renderer = 'Something failed resetting the password, try a new password reset'
+        }
+    }
+
+    renderer = afx`
+        <div class="password-reset">
+            <p>{props.errorMessage}</p>
+        </div>
+    `
+
+    @cache {
+        mode = 'uncached'
+        context {
+            1 = 'node'
+            2 = 'request'
+            3 = 'documentNode'
+        }
+    }
+}

@@ -1,0 +1,17 @@
+prototype(Networkteam.Neos.PasswordReset:Components.Atoms.RequestAccepted) < prototype(Neos.Neos:ContentComponent) {
+
+    email = ${String.htmlSpecialChars(request.httpRequest.arguments.resetEmail)}
+
+    renderer = afx`
+        <div class="password-reset">
+            <p>An email was sent to {props.email} with information on how to reset the password.</p>
+        </div>
+    `
+
+    @cache {
+        mode = 'uncached'
+        context {
+            1 = 'request.httpRequest.arguments'
+        }
+    }
+}

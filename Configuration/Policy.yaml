@@ -1,0 +1,14 @@
+privilegeTargets:
+
+  'Neos\Flow\Security\Authorization\Privilege\Method\MethodPrivilege':
+    'Networkteam.Neos.PasswordReset:Handler':
+      matcher: 'method(Networkteam\Neos\PasswordReset\Controller\PasswordManagementController->(?!initialize).*Action())'
+
+roles:
+
+  'Neos.Flow:Everybody':
+    privileges:
+    -
+      # Grant any user access to the FrontendLoginLoginForm plugin
+      privilegeTarget: 'Networkteam.Neos.PasswordReset:Handler'
+      permission: GRANT
