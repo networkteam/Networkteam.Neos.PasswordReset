@@ -30,6 +30,12 @@ class Mailer
      */
     protected $translator;
 
+    /**
+     * @var \Neos\Party\Domain\Repository\PartyRepository
+     * @Flow\Inject
+     */
+    protected $partyRepository;
+
     public function sendNoAccountMail(string $email, NodeInterface $passwordResetPage)
     {
         $translateId = 'mail.noAccountSubject';
@@ -51,7 +57,7 @@ class Mailer
         $message->setBody($txtBody);
         $message->addPart($htmlBody, 'text/html');
         $message->setTo($email);
-        $message->setSender($this->senderAddress);
+        $message->setFrom($this->senderAddress);
         $message->send();
     }
 
@@ -69,7 +75,8 @@ class Mailer
             'email' => $email,
             'node' => $passwordResetPage,
             'operating_system' => $uaInfo['platform'],
-            'browser_name' => $uaInfo['browser']
+            'browser_name' => $uaInfo['browser'],
+            'user' => $this->partyRepository->findOneHavingAccount($token->getAccount())
         ];
 
         $htmlBody = $this->renderTemplate($this->templatePaths['resetPasswordMailHtml'], $viewVariables);
@@ -78,7 +85,7 @@ class Mailer
         $message->setBody($txtBody);
         $message->addPart($htmlBody, 'text/html');
         $message->setTo($email);
-        $message->setSender($this->senderAddress);
+        $message->setFrom($this->senderAddress);
         $message->send();
     }
 
