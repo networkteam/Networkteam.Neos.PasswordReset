@@ -50,6 +50,13 @@ class PasswordManagementController extends ActionController
     protected $mailer;
 
     /**
+     * @var \Networkteam\Neos\PasswordReset\Service\TokenService
+     * @Flow\Inject
+     */
+    protected $tokenService;
+
+
+    /**
      * @param string $email
      * @param string $nodeIdentifier
      * @throws \Neos\Eel\Exception
@@ -73,9 +80,7 @@ class PasswordManagementController extends ActionController
         if ($account === null) {
             $this->mailer->sendNoAccountMail($email, $matchedNode);
         } else {
-            $token = new PasswordResetToken($account);
-            $this->passwordResetTokenRepository->add($token);
-            $this->persistenceManager->persistAll();
+            $token = $this->tokenService->createPasswordResetTokenForAccount($account);
             $this->mailer->sendResetPasswordMail($email, $matchedNode, $token);
         }
 
