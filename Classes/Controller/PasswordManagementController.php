@@ -105,6 +105,7 @@ class PasswordManagementController extends ActionController
         $matchedNode = $this->getRedirectTarget($nodeIdentifier);
         $validaDate = new \DateTime('now - 24 hours');
 
+        /** @var PasswordResetToken $token */
         $token = $this->passwordResetTokenRepository->findOneByToken($token);
 
         if ($token === null || $token->getCreatedAt() <= $validaDate) {
@@ -140,6 +141,12 @@ class PasswordManagementController extends ActionController
         }
 
         $token->getAccount()->setCredentialsSource($this->hashService->hashPassword($newPassword, 'default'));
+
+        // activate account if it is disabled
+        if (!$token->getAccount()->isActive()) {
+            $token->getAccount()->setExpirationDate(null);
+        }
+
         $this->accountRepository->update($token->getAccount());
         $this->persistenceManager->persistAll();
 
