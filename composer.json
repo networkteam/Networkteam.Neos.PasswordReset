@@ -1,7 +1,10 @@
 {
-    "description": "",
-    "type": "neos-package",
     "name": "networkteam/neos-passwordreset",
+    "type": "neos-package",
+    "description": "A Neos package for users to reset their password withing the frontend.",
+    "license": [
+        "GPL-3.0-or-later"
+    ],
     "require": {
         "neos/fusion-afx": "*",
         "neos/neos": "*",
