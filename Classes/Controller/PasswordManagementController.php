@@ -8,6 +8,8 @@ namespace Networkteam\Neos\PasswordReset\Controller;
 use Neos\ContentRepository\Domain\Model\NodeInterface;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Mvc\Controller\ActionController;
+use Neos\Flow\Security\Account;
+use Neos\Flow\Security\Context as SecurityContext;
 use Networkteam\Neos\PasswordReset\Domain\Model\PasswordResetToken;
 use Networkteam\Neos\PasswordReset\Domain\Repository\PasswordResetTokenRepository;
 
@@ -54,6 +56,18 @@ class PasswordManagementController extends ActionController
      * @Flow\Inject
      */
     protected $tokenService;
+
+    /**
+     * @var SecurityContext
+     * @Flow\Inject
+     */
+    protected $securityContext;
+
+    /**
+     * @var \Neos\Flow\I18n\Translator
+     * @Flow\Inject
+     */
+    protected $translator;
 
 
     /**
@@ -160,6 +174,83 @@ class PasswordManagementController extends ActionController
             [
                 'resetSuccess' => 'true'
             ]
+        );
+
+        $this->redirectToUri($redirectTarget);
+    }
+
+    public function changeAction(string $currentPassword, string $newPassword, string $passwordRepeat, string $nodeIdentifier) {
+        if ($this->securityContext->canBeInitialized()) {
+            $account = $this->securityContext->getAccount();
+        } else {
+            return;
+        }
+
+        $matchedNode = $this->getRedirectTarget($nodeIdentifier);
+
+        if (!$this->hashService->validatePassword($currentPassword, $account->getCredentialsSource())) {
+            $redirectTarget = $this->linkService->createNodeUri(
+                $this->getControllerContext(),
+                $matchedNode,
+                null,
+                'html',
+                false,
+                [
+                    'changeSuccess' => 'false',
+                    'error' => 'currentPasswordInvalid',
+                ]
+            );
+
+            $this->addFlashMessage(
+                $this->translator->translateById('passwordManagement.change.currentPasswordInvalid.body', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset'),
+                $this->translator->translateById('passwordManagement.change.currentPasswordInvalid.title', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset')
+            );
+
+            $this->redirectToUri($redirectTarget);
+        }
+
+        if ($newPassword !== $passwordRepeat) {
+            $redirectTarget = $this->linkService->createNodeUri(
+                $this->getControllerContext(),
+                $matchedNode,
+                null,
+                'html',
+                false,
+                [
+                    'changeSuccess' => 'false',
+                    'error' => 'passwordNoMatch',
+                ]
+            );
+
+            $this->addFlashMessage(
+                $this->translator->translateById('passwordManagement.change.passwordNoMatch.body', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset'),
+                $this->translator->translateById('passwordManagement.change.passwordNoMatch.title', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset')
+            );
+
+            $this->redirectToUri($redirectTarget);
+        }
+
+        // only change password if it differs from current password
+        if ($currentPassword !== $newPassword) {
+            $account->setCredentialsSource($this->hashService->hashPassword($newPassword, 'default'));
+            $this->accountRepository->update($account);
+            $this->persistenceManager->persistAll();
+        }
+
+        $redirectTarget = $this->linkService->createNodeUri(
+            $this->getControllerContext(),
+            $matchedNode,
+            null,
+            'html',
+            false,
+            [
+                'changeSuccess' => 'true'
+            ]
+        );
+
+        $this->addFlashMessage(
+            $this->translator->translateById('passwordManagement.change.success.body', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset'),
+            $this->translator->translateById('passwordManagement.change.success.title', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset')
         );
 
         $this->redirectToUri($redirectTarget);

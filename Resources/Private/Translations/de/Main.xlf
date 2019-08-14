@@ -10,6 +10,33 @@
 				<source>Lost password</source>
 				<target>Passwort vergessen</target>
 			</trans-unit>
+
+            <trans-unit id="passwordManagement.change.success.title" xml:space="preserve">
+				<source>Password changed</source>
+                <target>Passwort geändert</target>
+			</trans-unit>
+            <trans-unit id="passwordManagement.change.success.body" xml:space="preserve">
+				<source>Your password has been changed successfully.</source>
+                <target>Ihr Passwort wurde erfolgreich geändert.</target>
+			</trans-unit>
+
+            <trans-unit id="passwordManagement.change.passwordNoMatch.title" xml:space="preserve">
+				<source>Password no match</source>
+                <target>Passwort keine Übereinstimmung</target>
+			</trans-unit>
+            <trans-unit id="passwordManagement.change.passwordNoMatch.body" xml:space="preserve">
+				<source>The entered passwords do not match.</source>
+                <target>Die eingegebenen Passwörter stimmen nicht überein.</target>
+			</trans-unit>
+
+            <trans-unit id="passwordManagement.change.currentPasswordInvalid.title" xml:space="preserve">
+				<source>Current password invalid</source>
+                <target>Bisheriges Passwort ungültig</target>
+			</trans-unit>
+            <trans-unit id="passwordManagement.change.currentPasswordInvalid.body" xml:space="preserve">
+				<source>The given current password is invalid.</source>
+                <target>Das angegebene bisherige Passwort ist ungültig.</target>
+			</trans-unit>
 		</body>
 	</file>
 </xliff>

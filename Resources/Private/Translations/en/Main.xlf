@@ -8,6 +8,27 @@
 			<trans-unit id="mail.forgotPasswordSubject" xml:space="preserve">
 				<source>Lost password</source>
 			</trans-unit>
+
+			<trans-unit id="passwordManagement.change.success.title" xml:space="preserve">
+				<source>Password changed</source>
+			</trans-unit>
+            <trans-unit id="passwordManagement.change.success.body" xml:space="preserve">
+				<source>Your password has been changed successfully.</source>
+			</trans-unit>
+
+            <trans-unit id="passwordManagement.change.passwordNoMatch.title" xml:space="preserve">
+				<source>Password no match</source>
+			</trans-unit>
+            <trans-unit id="passwordManagement.change.passwordNoMatch.body" xml:space="preserve">
+				<source>The entered passwords do not match.</source>
+			</trans-unit>
+
+            <trans-unit id="passwordManagement.change.currentPasswordInvalid.title" xml:space="preserve">
+				<source>Current password invalid</source>
+			</trans-unit>
+            <trans-unit id="passwordManagement.change.currentPasswordInvalid.body" xml:space="preserve">
+				<source>The given current password is invalid.</source>
+			</trans-unit>
 		</body>
 	</file>
 </xliff>
