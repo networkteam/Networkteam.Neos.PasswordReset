@@ -32,6 +32,24 @@ Networkteam:
 The configuration `authenticationProviders` is an array of providers a reset is possible for. When multiple providers are
 given the email address is tested for each provider and the first one an account is found for creates the mail.
 
+
+### Policy
+
+To make the password change functionality work, you have to add the PasswordChange privilege (`Networkteam.Neos.PasswordReset:PasswordChange`) 
+to the member area role. If you use the [networkteam FrontendLogin package](https://github.com/networkteam/Networkteam.Neos.FrontendLogin) 
+it looks as follows:
+
+**Policy.yaml**
+
+```
+roles:
+  'Networkteam.Neos.FrontendLogin:MemberArea':
+    abstract: true
+    privileges:
+      - privilegeTarget: 'Networkteam.Neos.PasswordReset:PasswordChange'
+        permission: GRANT
+```
+
 Information flow
 ----------------
 If the user requests a new Password an email ist sent to the given address. If no associated account could be found for 

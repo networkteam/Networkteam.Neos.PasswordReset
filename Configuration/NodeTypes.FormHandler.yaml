@@ -4,9 +4,6 @@
 'Networkteam.Neos.PasswordReset:FormHandler':
   superTypes:
     'Neos.Neos:Content': true
-    'Wvm.Base:ContentBackground': true
-    'Wvm.Base:ContentMargin': true
-    'Wvm.Base:ContentPadding': true
   ui:
     label: i18n
     group: 'plugins'

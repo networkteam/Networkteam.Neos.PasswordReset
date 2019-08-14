@@ -1,23 +1,31 @@
-prototype(Networkteam.Neos.PasswordReset:Components.Atoms.ResetForm) < prototype(Neos.Neos:ContentComponent) {
+prototype(Networkteam.Neos.PasswordReset:Components.Atoms.ChangeForm) < prototype(Neos.Neos:ContentComponent) {
     formAction = Neos.Fusion:UriBuilder {
         package = 'Networkteam.Neos.PasswordReset'
         controller = 'PasswordManagement'
-        action = 'reset'
+        action = 'change'
     }
 
-    token = ${String.htmlSpecialChars(request.httpRequest.arguments.token)}
-    nodeIdentifier = ${q(node).property('_identifier')}
+    flashMessages = Networkteam.Neos.PasswordReset:FlashMessages
 
     renderer = afx`
-        <div class="password-reset">
+        <div class="password-change">
+            <div class="flash-messages" @if.hasFlashMessages={props.flashMessages}>
+                <Neos.Fusion:Loop items={props.flashMessages} @children="itemRenderer">
+                    <p>{item.message}</p>
+                </Neos.Fusion:Loop>
+            </div>
+
             <form action={props.formAction} method="post">
+                <label for="currentPassword">Current Password:</label>
+                <input type="password" name="currentPassword" />
+
                 <label for="newPassword">New Password:</label>
                 <input type="password" name="newPassword" />
 
                 <label for="passwordRepeat">Repeat password:</label>
                 <input type="password" name="passwordRepeat" />
-                <input type="hidden" name="token" value={props.token} />
                 <input type="hidden" name="nodeIdentifier" value={node.identifier} />
+                <input type="hidden" name="__csrfToken" value={Security.csrfToken()} />
                 <button class="btn btn-primary" type="submit">Set new Password</button>
             </form>
         </div>

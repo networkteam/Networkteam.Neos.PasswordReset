@@ -4,6 +4,9 @@ privilegeTargets:
     'Networkteam.Neos.PasswordReset:Handler':
       matcher: 'method(Networkteam\Neos\PasswordReset\Controller\PasswordManagementController->(?!initialize).*Action())'
 
+    'Networkteam.Neos.PasswordReset:PasswordChange':
+      matcher: 'method(Networkteam\Neos\PasswordReset\Controller\PasswordManagementController->changeAction())'
+
 roles:
 
   'Neos.Flow:Everybody':
