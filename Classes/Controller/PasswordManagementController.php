@@ -102,13 +102,13 @@ class PasswordManagementController extends ActionController
             if ($account !== null) {
                 break;
             }
-
-            $this->emitRequestedAccountForResetIsNotFound($email, $authenticationProviderName);
         }
 
         $matchedNode = $this->getRedirectTarget($nodeIdentifier);
 
         if ($account === null) {
+            $this->emitAccountForRequestedResetIsNotFound($email);
+
             if ($this->sendNoAccountMail) {
                 $this->mailer->sendNoAccountMail($email, $matchedNode);
             }
@@ -308,10 +308,9 @@ class PasswordManagementController extends ActionController
 
     /**
      * @param string $accountIdentifier
-     * @param string $authenticationProviderName
      * @FLow\Signal
      */
-    protected function emitRequestedAccountForResetIsNotFound(string $accountIdentifier, string $authenticationProviderName): void
+    protected function emitAccountForRequestedResetIsNotFound(string $accountIdentifier): void
     {
     }
 
