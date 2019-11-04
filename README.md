@@ -59,8 +59,8 @@ for certain events.
 
 | Signal name | Description | Parameters |
 | ----------- | ------------| ---------- |
-| **requestedAccountForResetIsNotFound** | is fired during requestResetAction when no account could be found for the given email address | `email`, `authenticationProviderName` |
-| **requestedAccountForResetIsInactive** | is fired during requestResetAction when the found account is inactive | `account`, `request`, `response` |
+| **accountForRequestedResetIsNotFound** | is fired during requestResetAction when no account could be found for the given email address | `email`, `authenticationProviderName` |
+| **accountForRequestedResetIsInactive** | is fired during requestResetAction when the found account is inactive | `account`, `request`, `response` |
 | **createdPasswordResetTokenForAccount** | is fired during requestResetActionwhen the password reset token has been created | `account`, `token` |
 | **resetTokenIsInvalid** | is fired during resetAction when given token is invalid | `token`, `validationDate` |
 

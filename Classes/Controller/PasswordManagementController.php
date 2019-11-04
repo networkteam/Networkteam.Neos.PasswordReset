@@ -113,7 +113,7 @@ class PasswordManagementController extends ActionController
                 $this->mailer->sendNoAccountMail($email, $matchedNode);
             }
         } elseif (!$account->isActive()) {
-            $this->emitRequestedAccountForResetIsInactive($account, $this->request, $this->response);
+            $this->emitAccountForRequestedResetIsInactive($account, $this->request, $this->response);
         } else {
             $token = $this->tokenService->createPasswordResetTokenForAccount($account);
 
@@ -320,7 +320,7 @@ class PasswordManagementController extends ActionController
      * @param Response $response
      * @FLow\Signal
      */
-    protected function emitRequestedAccountForResetIsInactive(Account $account, RequestInterface $request, Response $response): void
+    protected function emitAccountForRequestedResetIsInactive(Account $account, RequestInterface $request, Response $response): void
     {
     }
 
