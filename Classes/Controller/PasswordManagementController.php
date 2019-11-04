@@ -7,7 +7,9 @@ namespace Networkteam\Neos\PasswordReset\Controller;
 
 use Neos\ContentRepository\Domain\Model\NodeInterface;
 use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Http\Response;
 use Neos\Flow\Mvc\Controller\ActionController;
+use Neos\Flow\Mvc\RequestInterface;
 use Neos\Flow\Security\Account;
 use Neos\Flow\Security\Context as SecurityContext;
 use Networkteam\Neos\PasswordReset\Domain\Model\PasswordResetToken;
@@ -97,7 +99,7 @@ class PasswordManagementController extends ActionController
         if ($account === null) {
             $this->mailer->sendNoAccountMail($email, $matchedNode);
         } elseif (!$account->isActive()) {
-            $this->emitRequestedAccountForResetIsInactive($account);
+            $this->emitRequestedAccountForResetIsInactive($account, $this->request, $this->response);
         } else {
             $token = $this->tokenService->createPasswordResetTokenForAccount($account);
 
@@ -299,9 +301,11 @@ class PasswordManagementController extends ActionController
 
     /**
      * @param Account $account
+     * @param RequestInterface $request
+     * @param Response $response
      * @FLow\Signal
      */
-    protected function emitRequestedAccountForResetIsInactive(Account $account): void
+    protected function emitRequestedAccountForResetIsInactive(Account $account, RequestInterface $request, Response $response): void
     {
     }
 
