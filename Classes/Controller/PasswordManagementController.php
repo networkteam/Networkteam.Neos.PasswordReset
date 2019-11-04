@@ -7,7 +7,9 @@ namespace Networkteam\Neos\PasswordReset\Controller;
 
 use Neos\ContentRepository\Domain\Model\NodeInterface;
 use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Http\Response;
 use Neos\Flow\Mvc\Controller\ActionController;
+use Neos\Flow\Mvc\RequestInterface;
 use Neos\Flow\Security\Account;
 use Neos\Flow\Security\Context as SecurityContext;
 use Networkteam\Neos\PasswordReset\Domain\Model\PasswordResetToken;
@@ -80,21 +82,29 @@ class PasswordManagementController extends ActionController
      * @throws \Neos\Neos\Exception
      * @Flow\SkipCsrfProtection
      */
-    public function requestResetAction(string $email, string $nodeIdentifier)
+    public function requestResetAction(string $email, string $nodeIdentifier): void
     {
         $account = null;
         foreach($this->settings['authenticationProviders'] as $authenticationProviderName) {
-            $account = $this->accountRepository->findActiveByAccountIdentifierAndAuthenticationProviderName($email, $authenticationProviderName);
+            $account = $this->accountRepository->findByAccountIdentifierAndAuthenticationProviderName($email, $authenticationProviderName);
             if ($account !== null) {
                 break;
             }
+
+            $this->emitRequestedAccountForResetIsNotFound($email, $authenticationProviderName);
         }
+
         $matchedNode = $this->getRedirectTarget($nodeIdentifier);
 
         if ($account === null) {
             $this->mailer->sendNoAccountMail($email, $matchedNode);
+        } elseif (!$account->isActive()) {
+            $this->emitRequestedAccountForResetIsInactive($account, $this->request, $this->response);
         } else {
             $token = $this->tokenService->createPasswordResetTokenForAccount($account);
+
+            $this->emitCreatedPasswordResetTokenForAccount($account, $token);
+
             $this->mailer->sendResetPasswordMail($email, $matchedNode, $token);
         }
 
@@ -114,7 +124,7 @@ class PasswordManagementController extends ActionController
     }
 
 
-    public function resetAction(string $token, string $newPassword, string $passwordRepeat, string $nodeIdentifier)
+    public function resetAction(string $token, string $newPassword, string $passwordRepeat, string $nodeIdentifier): void
     {
         $matchedNode = $this->getRedirectTarget($nodeIdentifier);
         $validaDate = new \DateTime('now - 24 hours');
@@ -123,6 +133,8 @@ class PasswordManagementController extends ActionController
         $token = $this->passwordResetTokenRepository->findOneByToken($token);
 
         if ($token === null || $token->getCreatedAt() <= $validaDate) {
+            $this->emitTokenForResetIsInvalid($token, $validaDate);
+
             $redirectTarget = $this->linkService->createNodeUri(
                 $this->getControllerContext(),
                 $matchedNode,
@@ -179,7 +191,8 @@ class PasswordManagementController extends ActionController
         $this->redirectToUri($redirectTarget);
     }
 
-    public function changeAction(string $currentPassword, string $newPassword, string $passwordRepeat, string $nodeIdentifier) {
+    public function changeAction(string $currentPassword, string $newPassword, string $passwordRepeat, string $nodeIdentifier): void
+    {
         if ($this->securityContext->canBeInitialized()) {
             $account = $this->securityContext->getAccount();
         } else {
@@ -258,10 +271,10 @@ class PasswordManagementController extends ActionController
 
     /**
      * @param string $nodeIdentifier
-     * @return mixed
+     * @return NodeInterface|null
      * @throws \Neos\Eel\Exception
      */
-    private function getRedirectTarget(string $nodeIdentifier)
+    protected function getRedirectTarget(string $nodeIdentifier): ?NodeInterface
     {
         $contentContext = $this->contentContextFactory->create([
             'workspaceName' => 'live',
@@ -275,5 +288,42 @@ class PasswordManagementController extends ActionController
             ->closest('[instanceof Neos.Neos:Document]')
             ->get(0);
         return $matchedNode;
+    }
+
+    /**
+     * @param string $accountIdentifier
+     * @param string $authenticationProviderName
+     * @FLow\Signal
+     */
+    protected function emitRequestedAccountForResetIsNotFound(string $accountIdentifier, string $authenticationProviderName): void
+    {
+    }
+
+    /**
+     * @param Account $account
+     * @param RequestInterface $request
+     * @param Response $response
+     * @FLow\Signal
+     */
+    protected function emitRequestedAccountForResetIsInactive(Account $account, RequestInterface $request, Response $response): void
+    {
+    }
+
+    /**
+     * @param PasswordResetToken|null $token
+     * @param \DateTime $validaDate
+     * @FLow\Signal
+     */
+    private function emitTokenForResetIsInvalid(?PasswordResetToken $token, \DateTime $validaDate): void
+    {
+    }
+
+    /**
+     * @param Account $account
+     * @param PasswordResetToken $token
+     * @FLow\Signal
+     */
+    protected function emitCreatedPasswordResetTokenForAccount(Account $account, PasswordResetToken $token): void
+    {
     }
 }
