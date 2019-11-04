@@ -89,7 +89,7 @@ class PasswordManagementController extends ActionController
                 break;
             }
 
-            $this->emitAccountNotFound($email, $authenticationProviderName);
+            $this->emitRequestedAccountForResetIsNotFound($email, $authenticationProviderName);
         }
 
         $matchedNode = $this->getRedirectTarget($nodeIdentifier);
@@ -97,7 +97,7 @@ class PasswordManagementController extends ActionController
         if ($account === null) {
             $this->mailer->sendNoAccountMail($email, $matchedNode);
         } elseif (!$account->isActive()) {
-            $this->emitAccountIsInactive($account);
+            $this->emitRequestedAccountForResetIsInactive($account);
         } else {
             $token = $this->tokenService->createPasswordResetTokenForAccount($account);
 
@@ -131,7 +131,7 @@ class PasswordManagementController extends ActionController
         $token = $this->passwordResetTokenRepository->findOneByToken($token);
 
         if ($token === null || $token->getCreatedAt() <= $validaDate) {
-            $this->emitTokenIsInvalid($token, $validaDate);
+            $this->emitTokenForResetIsInvalid($token, $validaDate);
 
             $redirectTarget = $this->linkService->createNodeUri(
                 $this->getControllerContext(),
@@ -293,7 +293,7 @@ class PasswordManagementController extends ActionController
      * @param string $authenticationProviderName
      * @FLow\Signal
      */
-    protected function emitAccountNotFound(string $accountIdentifier, string $authenticationProviderName): void
+    protected function emitRequestedAccountForResetIsNotFound(string $accountIdentifier, string $authenticationProviderName): void
     {
     }
 
@@ -301,7 +301,7 @@ class PasswordManagementController extends ActionController
      * @param Account $account
      * @FLow\Signal
      */
-    protected function emitAccountIsInactive(Account $account): void
+    protected function emitRequestedAccountForResetIsInactive(Account $account): void
     {
     }
 
@@ -310,7 +310,7 @@ class PasswordManagementController extends ActionController
      * @param \DateTime $validaDate
      * @FLow\Signal
      */
-    private function emitTokenIsInvalid(?PasswordResetToken $token, \DateTime $validaDate): void
+    private function emitTokenForResetIsInvalid(?PasswordResetToken $token, \DateTime $validaDate): void
     {
     }
 
