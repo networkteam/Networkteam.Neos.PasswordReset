@@ -71,6 +71,18 @@ class PasswordManagementController extends ActionController
      */
     protected $translator;
 
+    /**
+     * @var bool
+     * @Flow\InjectConfiguration("sendResetPasswordMail")
+     */
+    protected $sendResetPasswordMail;
+
+    /**
+     * @var bool
+     * @Flow\InjectConfiguration("sendNoAccountMail")
+     */
+    protected $sendNoAccountMail;
+
 
     /**
      * @param string $email
@@ -90,22 +102,26 @@ class PasswordManagementController extends ActionController
             if ($account !== null) {
                 break;
             }
-
-            $this->emitRequestedAccountForResetIsNotFound($email, $authenticationProviderName);
         }
 
         $matchedNode = $this->getRedirectTarget($nodeIdentifier);
 
         if ($account === null) {
-            $this->mailer->sendNoAccountMail($email, $matchedNode);
+            $this->emitAccountForRequestedResetIsNotFound($email);
+
+            if ($this->sendNoAccountMail) {
+                $this->mailer->sendNoAccountMail($email, $matchedNode);
+            }
         } elseif (!$account->isActive()) {
-            $this->emitRequestedAccountForResetIsInactive($account, $this->request, $this->response);
+            $this->emitAccountForRequestedResetIsInactive($account, $this->request, $this->response);
         } else {
             $token = $this->tokenService->createPasswordResetTokenForAccount($account);
 
             $this->emitCreatedPasswordResetTokenForAccount($account, $token);
 
-            $this->mailer->sendResetPasswordMail($email, $matchedNode, $token);
+            if ($this->sendResetPasswordMail) {
+                $this->mailer->sendResetPasswordMail($email, $matchedNode, $token);
+            }
         }
 
         $redirectTarget = $this->linkService->createNodeUri(
@@ -127,13 +143,13 @@ class PasswordManagementController extends ActionController
     public function resetAction(string $token, string $newPassword, string $passwordRepeat, string $nodeIdentifier): void
     {
         $matchedNode = $this->getRedirectTarget($nodeIdentifier);
-        $validaDate = new \DateTime('now - 24 hours');
+        $validationDate = new \DateTime('now - 24 hours');
 
         /** @var PasswordResetToken $token */
         $token = $this->passwordResetTokenRepository->findOneByToken($token);
 
-        if ($token === null || $token->getCreatedAt() <= $validaDate) {
-            $this->emitTokenForResetIsInvalid($token, $validaDate);
+        if ($token === null || $token->getCreatedAt() <= $validationDate) {
+            $this->emitResetTokenIsInvalid($token, $validationDate);
 
             $redirectTarget = $this->linkService->createNodeUri(
                 $this->getControllerContext(),
@@ -292,10 +308,9 @@ class PasswordManagementController extends ActionController
 
     /**
      * @param string $accountIdentifier
-     * @param string $authenticationProviderName
      * @FLow\Signal
      */
-    protected function emitRequestedAccountForResetIsNotFound(string $accountIdentifier, string $authenticationProviderName): void
+    protected function emitAccountForRequestedResetIsNotFound(string $accountIdentifier): void
     {
     }
 
@@ -305,16 +320,16 @@ class PasswordManagementController extends ActionController
      * @param Response $response
      * @FLow\Signal
      */
-    protected function emitRequestedAccountForResetIsInactive(Account $account, RequestInterface $request, Response $response): void
+    protected function emitAccountForRequestedResetIsInactive(Account $account, RequestInterface $request, Response $response): void
     {
     }
 
     /**
      * @param PasswordResetToken|null $token
-     * @param \DateTime $validaDate
+     * @param \DateTime $validationDate
      * @FLow\Signal
      */
-    private function emitTokenForResetIsInvalid(?PasswordResetToken $token, \DateTime $validaDate): void
+    private function emitResetTokenIsInvalid(?PasswordResetToken $token, \DateTime $validationDate): void
     {
     }
 

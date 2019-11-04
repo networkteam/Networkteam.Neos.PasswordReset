@@ -50,14 +50,28 @@ roles:
         permission: GRANT
 ```
 
+### Signals
+
+This package provides [signals](https://flowframework.readthedocs.io/en/stable/TheDefinitiveGuide/PartIII/SignalsAndSlots.html?highlight=signal#signals-and-slots) 
+for certain events.
+
+**requestResetAction**
+
+| Signal name | Description | Parameters |
+| ----------- | ------------| ---------- |
+| **accountForRequestedResetIsNotFound** | is fired during requestResetAction when no account could be found for the given email address | `email`, `authenticationProviderName` |
+| **accountForRequestedResetIsInactive** | is fired during requestResetAction when the found account is inactive | `account`, `request`, `response` |
+| **createdPasswordResetTokenForAccount** | is fired during requestResetActionwhen the password reset token has been created | `account`, `token` |
+| **resetTokenIsInvalid** | is fired during resetAction when given token is invalid | `token`, `validationDate` |
+
 Information flow
 ----------------
 If the user requests a new Password an email ist sent to the given address. If no associated account could be found for 
 the email address an email with this information is sent to inform the user that he probably used another email address 
 for this account.
 
-If an account was found, a token is generated to identify the request. If the user clicks on the link in the email and 
-submits the form with the new password, the token is checked.
+If an account was found, a token is generated to identify the request and an email is send to the user. The token is 
+validated when the user clicks on the link in the email and submits the subsequently shown form with the new password.
 
 Requirements / Short comings
 ----------------------------
