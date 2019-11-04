@@ -24,3 +24,5 @@ Networkteam:
         noAccountMailTxt: 'resource://Networkteam.Neos.PasswordReset/Private/Templates/Mail/password-reset-help.txt'
         resetPasswordMailHtml: 'resource://Networkteam.Neos.PasswordReset/Private/Templates/Mail/password-reset-link.html'
         resetPasswordMailTxt: 'resource://Networkteam.Neos.PasswordReset/Private/Templates/Mail/password-reset-link.txt'
+      sendResetPasswordMail: true
+      sendNoAccountMail: true
