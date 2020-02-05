@@ -86,7 +86,8 @@ class PasswordManagementController extends ActionController
 
     /**
      * @param string $email
-     * @param string $nodeIdentifier
+     * @param string $redirectNodeIdentifier
+     * @param string $resetNodeIdentifier
      * @throws \Neos\Eel\Exception
      * @throws \Neos\Flow\Mvc\Exception\StopActionException
      * @throws \Neos\Flow\Mvc\Exception\UnsupportedRequestTypeException
@@ -94,7 +95,7 @@ class PasswordManagementController extends ActionController
      * @throws \Neos\Neos\Exception
      * @Flow\SkipCsrfProtection
      */
-    public function requestResetAction(string $email, string $nodeIdentifier): void
+    public function requestResetAction(string $email, string $redirectNodeIdentifier, string $resetNodeIdentifier): void
     {
         $account = null;
         foreach($this->settings['authenticationProviders'] as $authenticationProviderName) {
@@ -104,13 +105,14 @@ class PasswordManagementController extends ActionController
             }
         }
 
-        $matchedNode = $this->getRedirectTarget($nodeIdentifier);
+        $redirectNode = $this->getTargetNode($redirectNodeIdentifier);
+        $resetNode = $this->getTargetNode($resetNodeIdentifier);
 
         if ($account === null) {
             $this->emitAccountForRequestedResetIsNotFound($email);
 
             if ($this->sendNoAccountMail) {
-                $this->mailer->sendNoAccountMail($email, $matchedNode);
+                $this->mailer->sendNoAccountMail($email, $resetNode);
             }
         } elseif (!$account->isActive()) {
             $this->emitAccountForRequestedResetIsInactive($account, $this->request, $this->response);
@@ -120,13 +122,13 @@ class PasswordManagementController extends ActionController
             $this->emitCreatedPasswordResetTokenForAccount($account, $token);
 
             if ($this->sendResetPasswordMail) {
-                $this->mailer->sendResetPasswordMail($email, $matchedNode, $token);
+                $this->mailer->sendResetPasswordMail($email, $resetNode, $token);
             }
         }
 
         $redirectTarget = $this->linkService->createNodeUri(
             $this->getControllerContext(),
-            $matchedNode,
+            $redirectNode,
             null,
             'html',
             false,
@@ -142,7 +144,7 @@ class PasswordManagementController extends ActionController
 
     public function resetAction(string $token, string $newPassword, string $passwordRepeat, string $nodeIdentifier): void
     {
-        $matchedNode = $this->getRedirectTarget($nodeIdentifier);
+        $matchedNode = $this->getTargetNode($nodeIdentifier);
         $validationDate = new \DateTime('now - 24 hours');
 
         /** @var PasswordResetToken $token */
@@ -215,7 +217,7 @@ class PasswordManagementController extends ActionController
             return;
         }
 
-        $matchedNode = $this->getRedirectTarget($nodeIdentifier);
+        $matchedNode = $this->getTargetNode($nodeIdentifier);
 
         if (!$this->hashService->validatePassword($currentPassword, $account->getCredentialsSource())) {
             $redirectTarget = $this->linkService->createNodeUri(
@@ -290,7 +292,7 @@ class PasswordManagementController extends ActionController
      * @return NodeInterface|null
      * @throws \Neos\Eel\Exception
      */
-    protected function getRedirectTarget(string $nodeIdentifier): ?NodeInterface
+    protected function getTargetNode(string $nodeIdentifier): ?NodeInterface
     {
         $contentContext = $this->contentContextFactory->create([
             'workspaceName' => 'live',
