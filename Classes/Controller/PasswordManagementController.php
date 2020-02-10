@@ -207,7 +207,7 @@ class PasswordManagementController extends ActionController
 
         try {
             if ($authenticate) {
-                $this->authenticateAccount($token, $newPassword);
+                $this->authenticateAccount($token->getAccount()->getAccountIdentifier(), $newPassword);
             }
 
             $this->redirectToNode(
