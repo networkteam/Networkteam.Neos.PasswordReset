@@ -40,11 +40,11 @@
 
             <trans-unit id="passwordManagement.reset.tokenInvalid.title" xml:space="preserve">
 				<source>Failed to set password</source>
-                <target>Passwort konnte nicht geändert werde</target>
+                <target>Passwort konnte nicht geändert werden</target>
 			</trans-unit>
             <trans-unit id="passwordManagement.reset.tokenInvalid.body" xml:space="preserve">
 				<source>Your password could not be reset due to an invalid token. Please use the password forget function to get a valid link.</source>
-                <target>Aufgrund eines ungültigen Tokens konnte ihr Passwort nicht zurückgesetzt werden. Nutzen sie die Passwort vergessen Funktion erneut, um sich einen gültigen Link zuschicken zu lassen</target>
+                <target>Aufgrund eines ungültigen Tokens konnte ihr Passwort nicht zurückgesetzt werden. Nutzen sie die Passwort vergessen Funktion erneut, um sich einen gültigen Link zuschicken zu lassen<./target>
 			</trans-unit>
 
             <trans-unit id="passwordManagement.reset.passwordMissmatch.title" xml:space="preserve">
