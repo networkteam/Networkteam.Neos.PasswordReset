@@ -1,0 +1,24 @@
+prototype(Networkteam.Neos.PasswordReset:Components.Atoms.LoginError) < prototype(Neos.Neos:ContentComponent) {
+
+    errorMessage = Neos.Fusion:Case {
+        default {
+            condition = ${true}
+            renderer = 'The password was reseted successfully but the direct login afterwards failed.'
+        }
+    }
+
+    renderer = afx`
+        <div class="password-reset">
+            <p>{props.errorMessage}</p>
+        </div>
+    `
+
+    @cache {
+        mode = 'uncached'
+        context {
+            1 = 'node'
+            2 = 'request'
+            3 = 'documentNode'
+        }
+    }
+}

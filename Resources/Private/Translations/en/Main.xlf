@@ -29,6 +29,27 @@
             <trans-unit id="passwordManagement.change.currentPasswordInvalid.body" xml:space="preserve">
 				<source>The given current password is invalid.</source>
 			</trans-unit>
+
+            <trans-unit id="passwordManagement.reset.tokenInvalid.title" xml:space="preserve">
+				<source>Failed to set password</source>
+			</trans-unit>
+            <trans-unit id="passwordManagement.reset.tokenInvalid.body" xml:space="preserve">
+				<source>Your password could not be reset due to an invalid token. Please use the password forget function to get a valid link.</source>
+			</trans-unit>
+
+            <trans-unit id="passwordManagement.reset.passwordMissmatch.title" xml:space="preserve">
+				<source>Passwords do not match</source>
+			</trans-unit>
+            <trans-unit id="passwordManagement.reset.passwordMissmatch.body" xml:space="preserve">
+				<source>The given passwords do not match.</source>
+			</trans-unit>
+
+            <trans-unit id="passwordManagement.reset.loginFailed.title" xml:space="preserve">
+				<source>Login failed</source>
+			</trans-unit>
+            <trans-unit id="passwordManagement.reset.loginFailed.body" xml:space="preserve">
+				<source>Your password has been set successfully but the direct login failed.</source>
+			</trans-unit>
 		</body>
 	</file>
 </xliff>

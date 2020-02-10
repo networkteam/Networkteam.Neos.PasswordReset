@@ -12,13 +12,18 @@ prototype(Networkteam.Neos.PasswordReset:FormHandler) < prototype(Neos.Neos:Cont
         }
 
         resetSucceeded {
-            condition = ${request.httpRequest.arguments.resetSuccess == 'true'}
+            condition = ${request.httpRequest.arguments.resetSuccess && request.httpRequest.arguments.resetSuccess == 'true'}
             renderer = Networkteam.Neos.PasswordReset:Components.Atoms.ResetSucceeded
         }
 
         resetError {
-            condition = ${request.httpRequest.arguments.resetSuccess == 'false'}
+            condition = ${request.httpRequest.arguments.resetSuccess && request.httpRequest.arguments.resetSuccess == 'false'}
             renderer = Networkteam.Neos.PasswordReset:Components.Atoms.ResetError
+        }
+
+        loginFailed {
+            condition = ${request.httpRequest.arguments.loginSuccess && request.httpRequest.arguments.loginSuccess == 'false'}
+            renderer = Networkteam.Neos.PasswordReset:Components.Atoms.LoginError
         }
 
         changeForm {
