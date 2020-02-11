@@ -181,6 +181,7 @@ class PasswordManagementController extends ActionController
         }
 
         if ($newPassword !== $passwordRepeat) {
+            $this->emitPasswordMismatchInResetAction($token, $newPassword, $passwordRepeat, $matchedNode, $matchedRedirectNode);
             $this->addFlashMessage(
                 $this->translator->translateById('passwordManagement.reset.passwordMissmatch.body', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset'),
                 $this->translator->translateById('passwordManagement.reset.passwordMissmatch.title', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset')
@@ -208,6 +209,7 @@ class PasswordManagementController extends ActionController
         try {
             if ($authenticate) {
                 $this->authenticateAccount($token->getAccount()->getAccountIdentifier(), $newPassword);
+                $this->emitAuthenticationAttemptHasBeenMade($token->getAccount(), $newPassword, $matchedNode, $matchedRedirectNode);
             }
 
             $this->redirectToNode(
@@ -217,6 +219,7 @@ class PasswordManagementController extends ActionController
                 ]
             );
         } catch (AuthenticationRequiredException $exception) {
+            $this->emitFailedToAuthenticateAccount($token->getAccount(), $newPassword, $matchedNode, $matchedRedirectNode);
             $this->addFlashMessage(
                 $this->translator->translateById('passwordManagement.reset.loginFailed.body', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset'),
                 $this->translator->translateById('passwordManagement.reset.loginFailed.title', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset')
@@ -244,6 +247,7 @@ class PasswordManagementController extends ActionController
 
         // invalid password
         if (!$this->hashService->validatePassword($currentPassword, $account->getCredentialsSource())) {
+            $this->emitCurrentPasswordIsInvalid($account, $currentPassword, $matchedNode);
             $this->addFlashMessage(
                 $this->translator->translateById('passwordManagement.change.currentPasswordInvalid.body', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset'),
                 $this->translator->translateById('passwordManagement.change.currentPasswordInvalid.title', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset')
@@ -260,6 +264,7 @@ class PasswordManagementController extends ActionController
 
         // passwords do not match
         if ($newPassword !== $passwordRepeat) {
+            $this->emitPasswordMismatchInChangeAction($account, $newPassword, $passwordRepeat, $matchedNode);
             $this->addFlashMessage(
                 $this->translator->translateById('passwordManagement.change.passwordNoMatch.body', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset'),
                 $this->translator->translateById('passwordManagement.change.passwordNoMatch.title', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset')
@@ -279,6 +284,7 @@ class PasswordManagementController extends ActionController
             $account->setCredentialsSource($this->hashService->hashPassword($newPassword, 'default'));
             $this->accountRepository->update($account);
             $this->persistenceManager->persistAll();
+            $this->emitPasswordHasBeenChanged($account, $newPassword, $matchedNode);
         }
 
         $this->addFlashMessage(
@@ -329,7 +335,11 @@ class PasswordManagementController extends ActionController
      * @param Response $response
      * @FLow\Signal
      */
-    protected function emitAccountForRequestedResetIsInactive(Account $account, RequestInterface $request, Response $response): void
+    protected function emitAccountForRequestedResetIsInactive(
+        Account $account,
+        RequestInterface $request,
+        Response $response
+    ): void
     {
     }
 
@@ -338,7 +348,7 @@ class PasswordManagementController extends ActionController
      * @param \DateTime $validationDate
      * @FLow\Signal
      */
-    private function emitResetTokenIsInvalid(?PasswordResetToken $token, \DateTime $validationDate): void
+    protected function emitResetTokenIsInvalid(?PasswordResetToken $token, \DateTime $validationDate): void
     {
     }
 
@@ -348,6 +358,74 @@ class PasswordManagementController extends ActionController
      * @FLow\Signal
      */
     protected function emitCreatedPasswordResetTokenForAccount(Account $account, PasswordResetToken $token): void
+    {
+    }
+
+    /**
+     * @param PasswordResetToken $token
+     * @param string $newPassword
+     * @param string $passwordRepeat
+     * @param NodeInterface|null $matchedNode
+     * @param NodeInterface|null $matchedRedirectNode
+     */
+    protected function emitPasswordMismatchInResetAction(
+        PasswordResetToken $token,
+        string $newPassword,
+        string $passwordRepeat,
+        ?NodeInterface $matchedNode,
+        ?NodeInterface $matchedRedirectNode
+    ): void
+    {
+    }
+
+    /**
+     * @param Account $getAccount
+     * @param string $newPassword
+     * @param NodeInterface|null $matchedNode
+     * @param NodeInterface|null $matchedRedirectNode
+     */
+    protected function emitAuthenticationAttemptHasBeenMade(
+        Account $getAccount,
+        string $newPassword,
+        ?NodeInterface $matchedNode,
+        ?NodeInterface $matchedRedirectNode
+    ): void
+    {
+    }
+
+    /**
+     * @param Account $getAccount
+     * @param string $newPassword
+     * @param NodeInterface|null $matchedNode
+     * @param NodeInterface|null $matchedRedirectNode
+     */
+    protected function emitFailedToAuthenticateAccount(
+        Account $getAccount,
+        string $newPassword,
+        ?NodeInterface $matchedNode,
+        ?NodeInterface $matchedRedirectNode
+    ): void
+    {
+    }
+
+    /**
+     * @param Account $account
+     * @param string $currentPassword
+     * @param NodeInterface|null $matchedNode
+     */
+    protected function emitCurrentPasswordIsInvalid(
+        Account $account,
+        string $currentPassword,
+        ?NodeInterface $matchedNode
+    ): void
+    {
+    }
+
+    protected function emitPasswordHasBeenChanged(
+        Account $account,
+        string $newPassword,
+        ?NodeInterface $matchedNode
+    ): void
     {
     }
 
@@ -415,4 +493,5 @@ class PasswordManagementController extends ActionController
 
         $this->redirectToUri($redirectTarget);
     }
+
 }
