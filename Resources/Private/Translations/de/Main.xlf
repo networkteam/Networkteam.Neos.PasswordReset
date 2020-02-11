@@ -37,6 +37,33 @@
 				<source>The given current password is invalid.</source>
                 <target>Das angegebene bisherige Passwort ist ungültig.</target>
 			</trans-unit>
+
+            <trans-unit id="passwordManagement.reset.tokenInvalid.title" xml:space="preserve">
+				<source>Failed to set password</source>
+                <target>Passwort konnte nicht geändert werden</target>
+			</trans-unit>
+            <trans-unit id="passwordManagement.reset.tokenInvalid.body" xml:space="preserve">
+				<source>Your password could not be reset due to an invalid token. Please use the password forget function to get a valid link.</source>
+                <target>Aufgrund eines ungültigen Tokens konnte ihr Passwort nicht zurückgesetzt werden. Nutzen sie die Passwort vergessen Funktion erneut, um sich einen gültigen Link zuschicken zu lassen<./target>
+			</trans-unit>
+
+            <trans-unit id="passwordManagement.reset.passwordMissmatch.title" xml:space="preserve">
+				<source>Passwords do not match</source>
+                <target>Passwörter stimmen nicht überein</target>
+			</trans-unit>
+            <trans-unit id="passwordManagement.reset.passwordMissmatch.body" xml:space="preserve">
+				<source>The given passwords do not match.</source>
+                <target>Die angegebenen Passwörter stimmen nicht überein.</target>
+			</trans-unit>
+
+            <trans-unit id="passwordManagement.reset.loginFailed.title" xml:space="preserve">
+				<source>Login failed</source>
+                <target>Login fehlgeschlagen</target>
+			</trans-unit>
+            <trans-unit id="passwordManagement.reset.loginFailed.body" xml:space="preserve">
+				<source>Failed to directly login account.</source>
+                <target>Ihr Passwort wurde erfolgreich gesetzt. Der direkte Login ist allerdings fehlgeschlagen.</target>
+			</trans-unit>
 		</body>
 	</file>
 </xliff>

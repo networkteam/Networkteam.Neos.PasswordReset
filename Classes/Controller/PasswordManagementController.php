@@ -11,7 +11,10 @@ use Neos\Flow\Http\Response;
 use Neos\Flow\Mvc\Controller\ActionController;
 use Neos\Flow\Mvc\RequestInterface;
 use Neos\Flow\Security\Account;
+use Neos\Flow\Security\Authentication\AuthenticationManagerInterface;
+use Neos\Flow\Security\Authentication\Token\UsernamePassword;
 use Neos\Flow\Security\Context as SecurityContext;
+use Neos\Flow\Security\Exception\AuthenticationRequiredException;
 use Networkteam\Neos\PasswordReset\Domain\Model\PasswordResetToken;
 use Networkteam\Neos\PasswordReset\Domain\Repository\PasswordResetTokenRepository;
 
@@ -83,11 +86,16 @@ class PasswordManagementController extends ActionController
      */
     protected $sendNoAccountMail;
 
+    /**
+     * @var AuthenticationManagerInterface
+     * @Flow\Inject
+     */
+    protected $authenticationManager;
 
     /**
      * @param string $email
-     * @param string $redirectNodeIdentifier
-     * @param string $resetNodeIdentifier
+     * @param string $redirectNodeIdentifier Identifier of node for redirect
+     * @param string $resetNodeIdentifier Identifier of node containing passwort reset form
      * @throws \Neos\Eel\Exception
      * @throws \Neos\Flow\Mvc\Exception\StopActionException
      * @throws \Neos\Flow\Mvc\Exception\UnsupportedRequestTypeException
@@ -126,62 +134,65 @@ class PasswordManagementController extends ActionController
             }
         }
 
-        $redirectTarget = $this->linkService->createNodeUri(
-            $this->getControllerContext(),
+        $this->redirectToNode(
             $redirectNode,
-            null,
-            'html',
-            false,
             [
                 'resetEmail' => $email
             ]
         );
 
-        $this->redirectToUri($redirectTarget);
-
     }
 
-
-    public function resetAction(string $token, string $newPassword, string $passwordRepeat, string $nodeIdentifier): void
+    /**
+     * @param string $token
+     * @param string $newPassword
+     * @param string $passwordRepeat
+     * @param string $nodeIdentifier Identifier of Node containing PasswordReset Plugin
+     * @param string $redirectNodeIdentifier Identifier of node for redirect on success
+     * @param bool $authenticate If set to true wired account will be authenticated after password was set successfully
+     * @throws \Neos\Eel\Exception
+     * @throws \Neos\Flow\Mvc\Exception\InvalidArgumentNameException
+     * @throws \Neos\Flow\Mvc\Exception\InvalidArgumentTypeException
+     * @throws \Neos\Flow\Persistence\Exception\IllegalObjectTypeException
+     */
+    public function resetAction(string $token, string $newPassword, string $passwordRepeat, string $nodeIdentifier, string $redirectNodeIdentifier, bool $authenticate = false): void
     {
         $matchedNode = $this->getTargetNode($nodeIdentifier);
+        $matchedRedirectNode = $this->getTargetNode($redirectNodeIdentifier);
         $validationDate = new \DateTime('now - 24 hours');
 
         /** @var PasswordResetToken $token */
         $token = $this->passwordResetTokenRepository->findOneByToken($token);
 
+        // TODO: validate token -> if it was used before it must be invalid
         if ($token === null || $token->getCreatedAt() <= $validationDate) {
             $this->emitResetTokenIsInvalid($token, $validationDate);
-
-            $redirectTarget = $this->linkService->createNodeUri(
-                $this->getControllerContext(),
+            $this->addFlashMessage(
+                $this->translator->translateById('passwordManagement.reset.tokenInvalid.body', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset'),
+                $this->translator->translateById('passwordManagement.reset.tokenInvalid.title', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset')
+            );
+            $this->redirectToNode(
                 $matchedNode,
-                null,
-                'html',
-                false,
                 [
                     'resetSuccess' => 'false',
                     'error' => 'invalidToken',
                 ]
             );
-
-            $this->redirectToUri($redirectTarget);
         }
 
         if ($newPassword !== $passwordRepeat) {
-            $redirectTarget = $this->linkService->createNodeUri(
-                $this->getControllerContext(),
+            $this->emitPasswordMismatchInResetAction($token, $newPassword, $passwordRepeat, $matchedNode, $matchedRedirectNode);
+            $this->addFlashMessage(
+                $this->translator->translateById('passwordManagement.reset.passwordMissmatch.body', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset'),
+                $this->translator->translateById('passwordManagement.reset.passwordMissmatch.title', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset')
+            );
+            $this->redirectToNode(
                 $matchedNode,
-                null,
-                'html',
-                false,
                 [
                     'resetSuccess' => 'false',
                     'error' => 'passwordNoMatch',
                 ]
             );
-
-            $this->redirectToUri($redirectTarget);
         }
 
         $token->getAccount()->setCredentialsSource($this->hashService->hashPassword($newPassword, 'default'));
@@ -192,21 +203,36 @@ class PasswordManagementController extends ActionController
         }
 
         $this->accountRepository->update($token->getAccount());
+        $this->passwordResetTokenRepository->remove($token);
         $this->persistenceManager->persistAll();
 
+        try {
+            if ($authenticate) {
+                $this->authenticateAccount($token->getAccount()->getAccountIdentifier(), $newPassword);
+                $this->emitAuthenticationAttemptHasBeenMade($token->getAccount(), $newPassword, $matchedNode, $matchedRedirectNode);
+            }
 
-        $redirectTarget = $this->linkService->createNodeUri(
-            $this->getControllerContext(),
-            $matchedNode,
-            null,
-            'html',
-            false,
-            [
-                'resetSuccess' => 'true'
-            ]
-        );
+            $this->redirectToNode(
+                $matchedRedirectNode,
+                [
+                    'resetSuccess' => 'true'
+                ]
+            );
+        } catch (AuthenticationRequiredException $exception) {
+            $this->emitFailedToAuthenticateAccount($token->getAccount(), $newPassword, $matchedNode, $matchedRedirectNode);
+            $this->addFlashMessage(
+                $this->translator->translateById('passwordManagement.reset.loginFailed.body', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset'),
+                $this->translator->translateById('passwordManagement.reset.loginFailed.title', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset')
+            );
 
-        $this->redirectToUri($redirectTarget);
+            $this->redirectToNode(
+                $matchedNode,
+                [
+                    'loginSuccess' => 'false',
+                    'error' => 'loginFailed',
+                ]
+            );
+        }
     }
 
     public function changeAction(string $currentPassword, string $newPassword, string $passwordRepeat, string $nodeIdentifier): void
@@ -219,72 +245,59 @@ class PasswordManagementController extends ActionController
 
         $matchedNode = $this->getTargetNode($nodeIdentifier);
 
+        // invalid password
         if (!$this->hashService->validatePassword($currentPassword, $account->getCredentialsSource())) {
-            $redirectTarget = $this->linkService->createNodeUri(
-                $this->getControllerContext(),
-                $matchedNode,
-                null,
-                'html',
-                false,
-                [
-                    'changeSuccess' => 'false',
-                    'error' => 'currentPasswordInvalid',
-                ]
-            );
-
+            $this->emitCurrentPasswordIsInvalid($account, $currentPassword, $matchedNode);
             $this->addFlashMessage(
                 $this->translator->translateById('passwordManagement.change.currentPasswordInvalid.body', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset'),
                 $this->translator->translateById('passwordManagement.change.currentPasswordInvalid.title', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset')
             );
 
-            $this->redirectToUri($redirectTarget);
-        }
-
-        if ($newPassword !== $passwordRepeat) {
-            $redirectTarget = $this->linkService->createNodeUri(
-                $this->getControllerContext(),
+            $this->redirectToNode(
                 $matchedNode,
-                null,
-                'html',
-                false,
                 [
                     'changeSuccess' => 'false',
-                    'error' => 'passwordNoMatch',
+                    'error' => 'currentPasswordInvalid',
                 ]
             );
+        }
 
+        // passwords do not match
+        if ($newPassword !== $passwordRepeat) {
+            $this->emitPasswordMismatchInChangeAction($account, $newPassword, $passwordRepeat, $matchedNode);
             $this->addFlashMessage(
                 $this->translator->translateById('passwordManagement.change.passwordNoMatch.body', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset'),
                 $this->translator->translateById('passwordManagement.change.passwordNoMatch.title', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset')
             );
 
-            $this->redirectToUri($redirectTarget);
+            $this->redirectToNode(
+                $matchedNode,
+                [
+                    'changeSuccess' => 'false',
+                    'error' => 'passwordNoMatch',
+                ]
+            );
         }
 
-        // only change password if it differs from current password
+        // change password only if it differs from current password
         if ($currentPassword !== $newPassword) {
             $account->setCredentialsSource($this->hashService->hashPassword($newPassword, 'default'));
             $this->accountRepository->update($account);
             $this->persistenceManager->persistAll();
+            $this->emitPasswordHasBeenChanged($account, $newPassword, $matchedNode);
         }
-
-        $redirectTarget = $this->linkService->createNodeUri(
-            $this->getControllerContext(),
-            $matchedNode,
-            null,
-            'html',
-            false,
-            [
-                'changeSuccess' => 'true'
-            ]
-        );
 
         $this->addFlashMessage(
             $this->translator->translateById('passwordManagement.change.success.body', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset'),
             $this->translator->translateById('passwordManagement.change.success.title', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset')
         );
 
-        $this->redirectToUri($redirectTarget);
+        $this->redirectToNode(
+            $matchedNode,
+            [
+                'changeSuccess' => 'true'
+            ]
+        );
     }
 
     /**
@@ -322,7 +335,11 @@ class PasswordManagementController extends ActionController
      * @param Response $response
      * @FLow\Signal
      */
-    protected function emitAccountForRequestedResetIsInactive(Account $account, RequestInterface $request, Response $response): void
+    protected function emitAccountForRequestedResetIsInactive(
+        Account $account,
+        RequestInterface $request,
+        Response $response
+    ): void
     {
     }
 
@@ -331,7 +348,7 @@ class PasswordManagementController extends ActionController
      * @param \DateTime $validationDate
      * @FLow\Signal
      */
-    private function emitResetTokenIsInvalid(?PasswordResetToken $token, \DateTime $validationDate): void
+    protected function emitResetTokenIsInvalid(?PasswordResetToken $token, \DateTime $validationDate): void
     {
     }
 
@@ -343,4 +360,138 @@ class PasswordManagementController extends ActionController
     protected function emitCreatedPasswordResetTokenForAccount(Account $account, PasswordResetToken $token): void
     {
     }
+
+    /**
+     * @param PasswordResetToken $token
+     * @param string $newPassword
+     * @param string $passwordRepeat
+     * @param NodeInterface|null $matchedNode
+     * @param NodeInterface|null $matchedRedirectNode
+     */
+    protected function emitPasswordMismatchInResetAction(
+        PasswordResetToken $token,
+        string $newPassword,
+        string $passwordRepeat,
+        ?NodeInterface $matchedNode,
+        ?NodeInterface $matchedRedirectNode
+    ): void
+    {
+    }
+
+    /**
+     * @param Account $getAccount
+     * @param string $newPassword
+     * @param NodeInterface|null $matchedNode
+     * @param NodeInterface|null $matchedRedirectNode
+     */
+    protected function emitAuthenticationAttemptHasBeenMade(
+        Account $getAccount,
+        string $newPassword,
+        ?NodeInterface $matchedNode,
+        ?NodeInterface $matchedRedirectNode
+    ): void
+    {
+    }
+
+    /**
+     * @param Account $getAccount
+     * @param string $newPassword
+     * @param NodeInterface|null $matchedNode
+     * @param NodeInterface|null $matchedRedirectNode
+     */
+    protected function emitFailedToAuthenticateAccount(
+        Account $getAccount,
+        string $newPassword,
+        ?NodeInterface $matchedNode,
+        ?NodeInterface $matchedRedirectNode
+    ): void
+    {
+    }
+
+    /**
+     * @param Account $account
+     * @param string $currentPassword
+     * @param NodeInterface|null $matchedNode
+     */
+    protected function emitCurrentPasswordIsInvalid(
+        Account $account,
+        string $currentPassword,
+        ?NodeInterface $matchedNode
+    ): void
+    {
+    }
+
+    protected function emitPasswordHasBeenChanged(
+        Account $account,
+        string $newPassword,
+        ?NodeInterface $matchedNode
+    ): void
+    {
+    }
+
+    /**
+     * @param string $accountIdentifier
+     * @param string $password
+     * @throws AuthenticationRequiredException
+     * @throws \Neos\Flow\Mvc\Exception\InvalidArgumentNameException
+     * @throws \Neos\Flow\Mvc\Exception\InvalidArgumentTypeException
+     * @throws \Neos\Flow\Security\Exception\NoTokensAuthenticatedException
+     */
+    protected function authenticateAccount(string $accountIdentifier, string $password): void
+    {
+        $tokens = $this->authenticationManager->getSecurityContext()->getAuthenticationTokens();
+        $authenticationToken = null;
+
+        // take authenticationToken from first available configured authenticationProvider
+        foreach ($this->settings['authenticationProviders'] as $authenticationProviderName) {
+            if ($tokens[$authenticationProviderName]) {
+                $authenticationToken = $tokens[$authenticationProviderName] ?? null;
+                break;
+            }
+        }
+
+        if (!$authenticationToken instanceof UsernamePassword) {
+            throw new \Exception('Configured token object is not of required type', 1581345740);
+        }
+
+        // set username and password on request for updating authenticationToken
+        $this->request->setArgument(
+            '__authentication',
+            [
+                'Neos' => [
+                    'Flow' => [
+                        'Security' => [
+                            'Authentication' => [
+                                'Token' => [
+                                    'UsernamePassword' => [
+                                        'username' => $accountIdentifier,
+                                        'password' => $password
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        );
+
+        $authenticationToken->updateCredentials($this->request);
+
+        $this->authenticationManager->authenticate();
+    }
+
+    protected function redirectToNode(?NodeInterface $node, $arguments = []): void
+    {
+        $redirectTarget = $this->linkService->createNodeUri(
+            $this->getControllerContext(),
+            $node,
+            null,
+            'html',
+            false,
+            $arguments
+        );
+
+        $this->redirectToUri($redirectTarget);
+    }
+
 }

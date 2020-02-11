@@ -18,6 +18,7 @@ prototype(Networkteam.Neos.PasswordReset:Components.Atoms.ResetForm) < prototype
                 <input type="password" name="passwordRepeat" />
                 <input type="hidden" name="token" value={props.token} />
                 <input type="hidden" name="nodeIdentifier" value={node.identifier} />
+                <input type="hidden" name="redirectNodeIdentifier" value={node.identifier} />
                 <button class="btn btn-primary" type="submit">Set new Password</button>
             </form>
         </div>
