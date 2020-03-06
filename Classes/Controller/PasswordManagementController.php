@@ -117,17 +117,17 @@ class PasswordManagementController extends ActionController
         $resetNode = $this->getTargetNode($resetNodeIdentifier);
 
         if ($account === null) {
-            $this->emitAccountForRequestedResetIsNotFound($email);
+            $this->emitAccountForRequestedResetIsNotFound($email, $redirectNode);
 
             if ($this->sendNoAccountMail) {
                 $this->mailer->sendNoAccountMail($email, $resetNode);
             }
         } elseif (!$account->isActive()) {
-            $this->emitAccountForRequestedResetIsInactive($account, $this->request, $this->response);
+            $this->emitAccountForRequestedResetIsInactive($account, $this->request, $this->response, $resetNode);
         } else {
             $token = $this->tokenService->createPasswordResetTokenForAccount($account);
 
-            $this->emitCreatedPasswordResetTokenForAccount($account, $token);
+            $this->emitCreatedPasswordResetTokenForAccount($account, $token, $resetNode);
 
             if ($this->sendResetPasswordMail) {
                 $this->mailer->sendResetPasswordMail($email, $resetNode, $token);
@@ -323,9 +323,10 @@ class PasswordManagementController extends ActionController
 
     /**
      * @param string $accountIdentifier
+     * @param NodeInterface $resetDocumentNode
      * @FLow\Signal
      */
-    protected function emitAccountForRequestedResetIsNotFound(string $accountIdentifier): void
+    protected function emitAccountForRequestedResetIsNotFound(string $accountIdentifier, NodeInterface $resetDocumentNode): void
     {
     }
 
@@ -333,12 +334,14 @@ class PasswordManagementController extends ActionController
      * @param Account $account
      * @param RequestInterface $request
      * @param Response $response
+     * @param NodeInterface $resetDocumentNode
      * @FLow\Signal
      */
     protected function emitAccountForRequestedResetIsInactive(
         Account $account,
         RequestInterface $request,
-        Response $response
+        Response $response,
+        NodeInterface $resetDocumentNode
     ): void
     {
     }
@@ -355,9 +358,10 @@ class PasswordManagementController extends ActionController
     /**
      * @param Account $account
      * @param PasswordResetToken $token
+     * @param NodeInterface $resetDocumentNode
      * @FLow\Signal
      */
-    protected function emitCreatedPasswordResetTokenForAccount(Account $account, PasswordResetToken $token): void
+    protected function emitCreatedPasswordResetTokenForAccount(Account $account, PasswordResetToken $token, NodeInterface $resetDocumentNode): void
     {
     }
 
@@ -424,6 +428,15 @@ class PasswordManagementController extends ActionController
     protected function emitPasswordHasBeenChanged(
         Account $account,
         string $newPassword,
+        ?NodeInterface $matchedNode
+    ): void
+    {
+    }
+
+    protected function emitPasswordMismatchInChangeAction(
+        Account $account,
+        string $newPassword,
+        string $passwordRepeat,
         ?NodeInterface $matchedNode
     ): void
     {
