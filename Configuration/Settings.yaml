@@ -26,3 +26,6 @@ Networkteam:
         resetPasswordMailTxt: 'resource://Networkteam.Neos.PasswordReset/Private/Templates/Mail/password-reset-link.txt'
       sendResetPasswordMail: true
       sendNoAccountMail: true
+      # Regular expression pattern without starting and ending delimiters (so it works with html input pattern attribute)
+      # This pattern means: Must contain at least one number and one uppercase and lowercase letter, and at least 12 or more characters
+      passwordPattern: '(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{12,}'

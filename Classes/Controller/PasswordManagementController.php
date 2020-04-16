@@ -6,6 +6,7 @@ namespace Networkteam\Neos\PasswordReset\Controller;
  ***************************************************************/
 
 use Neos\ContentRepository\Domain\Model\NodeInterface;
+use Neos\Error\Messages\Result;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Http\Response;
 use Neos\Flow\Mvc\Controller\ActionController;
@@ -15,6 +16,8 @@ use Neos\Flow\Security\Authentication\AuthenticationManagerInterface;
 use Neos\Flow\Security\Authentication\Token\UsernamePassword;
 use Neos\Flow\Security\Context as SecurityContext;
 use Neos\Flow\Security\Exception\AuthenticationRequiredException;
+use Neos\Flow\Validation\Exception\InvalidValidationOptionsException;
+use Neos\Flow\Validation\Validator\RegularExpressionValidator;
 use Networkteam\Neos\PasswordReset\Domain\Model\PasswordResetToken;
 use Networkteam\Neos\PasswordReset\Domain\Repository\PasswordResetTokenRepository;
 
@@ -85,6 +88,12 @@ class PasswordManagementController extends ActionController
      * @Flow\InjectConfiguration("sendNoAccountMail")
      */
     protected $sendNoAccountMail;
+
+    /**
+     * @var bool
+     * @Flow\InjectConfiguration("passwordPattern")
+     */
+    protected $passwordPattern;
 
     /**
      * @var AuthenticationManagerInterface
@@ -161,12 +170,12 @@ class PasswordManagementController extends ActionController
         $matchedRedirectNode = $this->getTargetNode($redirectNodeIdentifier);
         $validationDate = new \DateTime('now - 24 hours');
 
-        /** @var PasswordResetToken $token */
-        $token = $this->passwordResetTokenRepository->findOneByToken($token);
+        /** @var PasswordResetToken $passwordResetToken */
+        $passwordResetToken = $this->passwordResetTokenRepository->findOneByToken($token);
 
         // TODO: validate token -> if it was used before it must be invalid
-        if ($token === null || $token->getCreatedAt() <= $validationDate) {
-            $this->emitResetTokenIsInvalid($token, $validationDate);
+        if ($passwordResetToken === null || $passwordResetToken->getCreatedAt() <= $validationDate) {
+            $this->emitResetTokenIsInvalid($passwordResetToken, $validationDate);
             $this->addFlashMessage(
                 $this->translator->translateById('passwordManagement.reset.tokenInvalid.body', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset'),
                 $this->translator->translateById('passwordManagement.reset.tokenInvalid.title', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset')
@@ -180,36 +189,61 @@ class PasswordManagementController extends ActionController
             );
         }
 
+        // passwords do not match
         if ($newPassword !== $passwordRepeat) {
-            $this->emitPasswordMismatchInResetAction($token, $newPassword, $passwordRepeat, $matchedNode, $matchedRedirectNode);
+            $this->emitPasswordMismatchInResetAction($passwordResetToken, $newPassword, $passwordRepeat, $matchedNode, $matchedRedirectNode);
             $this->addFlashMessage(
-                $this->translator->translateById('passwordManagement.reset.passwordMissmatch.body', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset'),
-                $this->translator->translateById('passwordManagement.reset.passwordMissmatch.title', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset')
+                $this->translator->translateById('passwordManagement.reset.passwordNoMatch.body', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset'),
+                $this->translator->translateById('passwordManagement.reset.passwordNoMatch.title', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset')
             );
             $this->redirectToNode(
                 $matchedNode,
                 [
                     'resetSuccess' => 'false',
                     'error' => 'passwordNoMatch',
+                    'token' => $token
                 ]
             );
         }
 
-        $token->getAccount()->setCredentialsSource($this->hashService->hashPassword($newPassword, 'default'));
+        // password pattern does not match
+        try {
+            $passwordResult = $this->getRegularExpressionValidatorResult($newPassword, $this->passwordPattern);
+            if ($passwordResult->hasErrors()) {
+                $this->emitPasswordPatternErrorInResetAction($passwordResetToken, $newPassword, $passwordResult, $matchedNode,$matchedRedirectNode);
+                $patternTitle = $this->translator->translateById('passwordManagement.passwordPatternTitle', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset');
+                $this->addFlashMessage(
+                    $this->translator->translateById('passwordManagement.passwordPatternError.body', [$patternTitle], null,null, 'Main', 'Networkteam.Neos.PasswordReset'),
+                    $this->translator->translateById('passwordManagement.passwordPatternError.title', [], null, null,'Main', 'Networkteam.Neos.PasswordReset')
+                );
+                $this->redirectToNode(
+                    $matchedNode,
+                    [
+                        'resetSuccess' => 'false',
+                        'error' => 'passwordPatternError',
+                        'token' => $token
+                    ]
+                );
+            }
+        } catch (InvalidValidationOptionsException $e) {
 
-        // activate account if it is disabled
-        if (!$token->getAccount()->isActive()) {
-            $token->getAccount()->setExpirationDate(null);
         }
 
-        $this->accountRepository->update($token->getAccount());
-        $this->passwordResetTokenRepository->remove($token);
+        $passwordResetToken->getAccount()->setCredentialsSource($this->hashService->hashPassword($newPassword, 'default'));
+
+        // activate account if it is disabled
+        if (!$passwordResetToken->getAccount()->isActive()) {
+            $passwordResetToken->getAccount()->setExpirationDate(null);
+        }
+
+        $this->accountRepository->update($passwordResetToken->getAccount());
+        $this->passwordResetTokenRepository->remove($passwordResetToken);
         $this->persistenceManager->persistAll();
 
         try {
             if ($authenticate) {
-                $this->authenticateAccount($token->getAccount()->getAccountIdentifier(), $newPassword);
-                $this->emitAuthenticationAttemptHasBeenMade($token->getAccount(), $newPassword, $matchedNode, $matchedRedirectNode);
+                $this->authenticateAccount($passwordResetToken->getAccount()->getAccountIdentifier(), $newPassword);
+                $this->emitAuthenticationAttemptHasBeenMade($passwordResetToken->getAccount(), $newPassword, $matchedNode, $matchedRedirectNode);
             }
 
             $this->redirectToNode(
@@ -219,7 +253,7 @@ class PasswordManagementController extends ActionController
                 ]
             );
         } catch (AuthenticationRequiredException $exception) {
-            $this->emitFailedToAuthenticateAccount($token->getAccount(), $newPassword, $matchedNode, $matchedRedirectNode);
+            $this->emitFailedToAuthenticateAccount($passwordResetToken->getAccount(), $newPassword, $matchedNode, $matchedRedirectNode);
             $this->addFlashMessage(
                 $this->translator->translateById('passwordManagement.reset.loginFailed.body', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset'),
                 $this->translator->translateById('passwordManagement.reset.loginFailed.title', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset')
@@ -277,6 +311,29 @@ class PasswordManagementController extends ActionController
                     'error' => 'passwordNoMatch',
                 ]
             );
+        }
+
+        // password pattern does not match
+        try {
+            $passwordResult = $this->getRegularExpressionValidatorResult($newPassword, $this->passwordPattern);
+            if ($passwordResult->hasErrors()) {
+                $this->emitPasswordPatternErrorInChangeAction($newPassword, $passwordResult, $matchedNode);
+                $patternTitle = $this->translator->translateById('passwordManagement.passwordPatternTitle', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset');
+                $this->addFlashMessage(
+                    $this->translator->translateById('passwordManagement.passwordPatternError.body', [$patternTitle], null,null, 'Main', 'Networkteam.Neos.PasswordReset'),
+                    $this->translator->translateById('passwordManagement.passwordPatternError.title', [], null, null,'Main', 'Networkteam.Neos.PasswordReset')
+                );
+
+                $this->redirectToNode(
+                    $matchedNode,
+                    [
+                        'changeSuccess' => 'false',
+                        'error' => 'passwordPatternError',
+                    ]
+                );
+            }
+        } catch (InvalidValidationOptionsException $e) {
+
         }
 
         // change password only if it differs from current password
@@ -383,6 +440,23 @@ class PasswordManagementController extends ActionController
     }
 
     /**
+     * @param PasswordResetToken $token
+     * @param string $newPassword
+     * @param Result $errorResult
+     * @param NodeInterface|null $matchedNode
+     * @param NodeInterface|null $matchedRedirectNode
+     */
+    protected function emitPasswordPatternErrorInResetAction(
+        PasswordResetToken $token,
+        string $newPassword,
+        Result $errorResult,
+        ?NodeInterface $matchedNode,
+        ?NodeInterface $matchedRedirectNode
+    ): void
+    {
+    }
+
+    /**
      * @param Account $getAccount
      * @param string $newPassword
      * @param NodeInterface|null $matchedNode
@@ -437,6 +511,14 @@ class PasswordManagementController extends ActionController
         Account $account,
         string $newPassword,
         string $passwordRepeat,
+        ?NodeInterface $matchedNode
+    ): void
+    {
+    }
+
+    protected function emitPasswordPatternErrorInChangeAction(
+        string $newPassword,
+        Result $errorResult,
         ?NodeInterface $matchedNode
     ): void
     {
@@ -505,6 +587,22 @@ class PasswordManagementController extends ActionController
         );
 
         $this->redirectToUri($redirectTarget);
+    }
+
+    /**
+     * @param string $value
+     * @param string $pattern Regular expression pattern without starting and ending delimiters
+     * @return Result
+     * @throws InvalidValidationOptionsException
+     */
+    protected function getRegularExpressionValidatorResult(string $value, string $pattern): Result
+    {
+        $validator = new RegularExpressionValidator([
+            // we must add starting and ending delimiters so the passwordPattern does work with html input pattern attribute
+            'regularExpression' => sprintf("/%s/", $pattern)
+        ]);
+
+        return $validator->validate($value);
     }
 
 }

@@ -9,7 +9,10 @@ prototype(Networkteam.Neos.PasswordReset:Components.Atoms.ResetError) < prototyp
             condition = ${request.httpRequest.arguments.error == 'passwordNoMatch'}
             renderer = 'The provided passwords did not match'
         }
-
+        passwordPatternError {
+            condition = ${request.httpRequest.arguments.error == 'passwordPatternError'}
+            renderer = 'The given password does not match the demanded pattern.'
+        }
         default {
             condition = ${true}
             renderer = 'Something failed resetting the password, try a new password reset'
