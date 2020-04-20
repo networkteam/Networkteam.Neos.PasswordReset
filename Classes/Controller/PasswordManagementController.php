@@ -163,6 +163,7 @@ class PasswordManagementController extends ActionController
      * @throws \Neos\Flow\Mvc\Exception\InvalidArgumentNameException
      * @throws \Neos\Flow\Mvc\Exception\InvalidArgumentTypeException
      * @throws \Neos\Flow\Persistence\Exception\IllegalObjectTypeException
+     * @throws InvalidValidationOptionsException
      */
     public function resetAction(string $token, string $newPassword, string $passwordRepeat, string $nodeIdentifier, string $redirectNodeIdentifier, bool $authenticate = false): void
     {
@@ -207,26 +208,22 @@ class PasswordManagementController extends ActionController
         }
 
         // password pattern does not match
-        try {
-            $passwordResult = $this->getRegularExpressionValidatorResult($newPassword, $this->passwordPattern);
-            if ($passwordResult->hasErrors()) {
-                $this->emitPasswordPatternErrorInResetAction($passwordResetToken, $newPassword, $passwordResult, $matchedNode,$matchedRedirectNode);
-                $patternTitle = $this->translator->translateById('passwordManagement.passwordPatternTitle', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset');
-                $this->addFlashMessage(
-                    $this->translator->translateById('passwordManagement.passwordPatternError.body', [$patternTitle], null,null, 'Main', 'Networkteam.Neos.PasswordReset'),
-                    $this->translator->translateById('passwordManagement.passwordPatternError.title', [], null, null,'Main', 'Networkteam.Neos.PasswordReset')
-                );
-                $this->redirectToNode(
-                    $matchedNode,
-                    [
-                        'resetSuccess' => 'false',
-                        'error' => 'passwordPatternError',
-                        'token' => $token
-                    ]
-                );
-            }
-        } catch (InvalidValidationOptionsException $e) {
-
+        $passwordResult = $this->getRegularExpressionValidatorResult($newPassword, $this->passwordPattern);
+        if ($passwordResult->hasErrors()) {
+            $this->emitPasswordPatternErrorInResetAction($passwordResetToken, $newPassword, $passwordResult, $matchedNode,$matchedRedirectNode);
+            $patternTitle = $this->translator->translateById('passwordManagement.passwordPatternTitle', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset');
+            $this->addFlashMessage(
+                $this->translator->translateById('passwordManagement.passwordPatternError.body', [$patternTitle], null,null, 'Main', 'Networkteam.Neos.PasswordReset'),
+                $this->translator->translateById('passwordManagement.passwordPatternError.title', [], null, null,'Main', 'Networkteam.Neos.PasswordReset')
+            );
+            $this->redirectToNode(
+                $matchedNode,
+                [
+                    'resetSuccess' => 'false',
+                    'error' => 'passwordPatternError',
+                    'token' => $token
+                ]
+            );
         }
 
         $passwordResetToken->getAccount()->setCredentialsSource($this->hashService->hashPassword($newPassword, 'default'));
@@ -269,6 +266,15 @@ class PasswordManagementController extends ActionController
         }
     }
 
+    /**
+     * @param string $currentPassword
+     * @param string $newPassword
+     * @param string $passwordRepeat
+     * @param string $nodeIdentifier
+     * @throws InvalidValidationOptionsException
+     * @throws \Neos\Eel\Exception
+     * @throws \Neos\Flow\Persistence\Exception\IllegalObjectTypeException
+     */
     public function changeAction(string $currentPassword, string $newPassword, string $passwordRepeat, string $nodeIdentifier): void
     {
         if ($this->securityContext->canBeInitialized()) {
@@ -314,26 +320,22 @@ class PasswordManagementController extends ActionController
         }
 
         // password pattern does not match
-        try {
-            $passwordResult = $this->getRegularExpressionValidatorResult($newPassword, $this->passwordPattern);
-            if ($passwordResult->hasErrors()) {
-                $this->emitPasswordPatternErrorInChangeAction($newPassword, $passwordResult, $matchedNode);
-                $patternTitle = $this->translator->translateById('passwordManagement.passwordPatternTitle', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset');
-                $this->addFlashMessage(
-                    $this->translator->translateById('passwordManagement.passwordPatternError.body', [$patternTitle], null,null, 'Main', 'Networkteam.Neos.PasswordReset'),
-                    $this->translator->translateById('passwordManagement.passwordPatternError.title', [], null, null,'Main', 'Networkteam.Neos.PasswordReset')
-                );
+        $passwordResult = $this->getRegularExpressionValidatorResult($newPassword, $this->passwordPattern);
+        if ($passwordResult->hasErrors()) {
+            $this->emitPasswordPatternErrorInChangeAction($newPassword, $passwordResult, $matchedNode);
+            $patternTitle = $this->translator->translateById('passwordManagement.passwordPatternTitle', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset');
+            $this->addFlashMessage(
+                $this->translator->translateById('passwordManagement.passwordPatternError.body', [$patternTitle], null,null, 'Main', 'Networkteam.Neos.PasswordReset'),
+                $this->translator->translateById('passwordManagement.passwordPatternError.title', [], null, null,'Main', 'Networkteam.Neos.PasswordReset')
+            );
 
-                $this->redirectToNode(
-                    $matchedNode,
-                    [
-                        'changeSuccess' => 'false',
-                        'error' => 'passwordPatternError',
-                    ]
-                );
-            }
-        } catch (InvalidValidationOptionsException $e) {
-
+            $this->redirectToNode(
+                $matchedNode,
+                [
+                    'changeSuccess' => 'false',
+                    'error' => 'passwordPatternError',
+                ]
+            );
         }
 
         // change password only if it differs from current password
