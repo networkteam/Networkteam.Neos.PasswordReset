@@ -210,10 +210,13 @@ class PasswordManagementController extends ActionController
         // password pattern does not match
         $passwordResult = $this->getRegularExpressionValidatorResult($newPassword, $this->passwordPattern);
         if ($passwordResult->hasErrors()) {
-            $this->emitPasswordPatternErrorInResetAction($passwordResetToken, $newPassword, $passwordResult, $matchedNode,$matchedRedirectNode);
-            $patternTitle = $this->translator->translateById('passwordManagement.passwordPatternTitle', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset');
+            $this->emitPasswordPatternErrorInResetAction($passwordResetToken, $newPassword, $passwordResult, $matchedNode, $matchedRedirectNode);
+
+            $defaultPasswordPatternDescription = $this->translator->translateById('passwordManagement.passwordPatternDescription', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset');
+            $passwordPatternDescription = $this->getPasswordPatternDescription($matchedNode) ?? $defaultPasswordPatternDescription;
+
             $this->addFlashMessage(
-                $this->translator->translateById('passwordManagement.passwordPatternError.body', [$patternTitle], null,null, 'Main', 'Networkteam.Neos.PasswordReset'),
+                $this->translator->translateById('passwordManagement.passwordPatternError.body', [$passwordPatternDescription], null,null, 'Main', 'Networkteam.Neos.PasswordReset'),
                 $this->translator->translateById('passwordManagement.passwordPatternError.title', [], null, null,'Main', 'Networkteam.Neos.PasswordReset')
             );
             $this->redirectToNode(
@@ -323,9 +326,12 @@ class PasswordManagementController extends ActionController
         $passwordResult = $this->getRegularExpressionValidatorResult($newPassword, $this->passwordPattern);
         if ($passwordResult->hasErrors()) {
             $this->emitPasswordPatternErrorInChangeAction($newPassword, $passwordResult, $matchedNode);
-            $patternTitle = $this->translator->translateById('passwordManagement.passwordPatternTitle', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset');
+
+            $defaultPasswordPatternDescription = $this->translator->translateById('passwordManagement.passwordPatternDescription', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset');
+            $passwordPatternDescription = $this->getPasswordPatternDescription($matchedNode) ?? $defaultPasswordPatternDescription;
+
             $this->addFlashMessage(
-                $this->translator->translateById('passwordManagement.passwordPatternError.body', [$patternTitle], null,null, 'Main', 'Networkteam.Neos.PasswordReset'),
+                $this->translator->translateById('passwordManagement.passwordPatternError.body', [$passwordPatternDescription], null,null, 'Main', 'Networkteam.Neos.PasswordReset'),
                 $this->translator->translateById('passwordManagement.passwordPatternError.title', [], null, null,'Main', 'Networkteam.Neos.PasswordReset')
             );
 
@@ -605,6 +611,20 @@ class PasswordManagementController extends ActionController
         ]);
 
         return $validator->validate($value);
+    }
+
+    protected function getPasswordPatternDescription(NodeInterface $node): ?string
+    {
+        try {
+            $passwordPatternDescription = trim($node->getProperty('passwordPatternDescription'));
+            if (empty($passwordPatternDescription)) {
+                $passwordPatternDescription = null;
+            }
+        } catch(\Exception $e) {
+            $passwordPatternDescription = null;
+        }
+
+        return $passwordPatternDescription;
     }
 
 }

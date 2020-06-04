@@ -11,7 +11,7 @@
 				<target>Passwort vergessen</target>
 			</trans-unit>
 
-			<trans-unit id="passwordManagement.passwordPatternTitle" xml:space="preserve">
+			<trans-unit id="passwordManagement.passwordPatternDescription" xml:space="preserve">
 				<source>Must contain at least one number and one uppercase and lowercase letter, and at least 12 or more characters</source>
 				<target>Muss mindestens eine Zahl und einen Groß- und Kleinbuchstaben sowie mindestens 12 oder mehr Zeichen enthalten</target>
 			</trans-unit>

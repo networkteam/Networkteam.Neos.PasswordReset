@@ -9,7 +9,7 @@
 				<source>Lost password</source>
 			</trans-unit>
 
-			<trans-unit id="passwordManagement.passwordPatternTitle" xml:space="preserve">
+			<trans-unit id="passwordManagement.passwordPatternDescription" xml:space="preserve">
 				<source>Must contain at least one number and one uppercase and lowercase letter, and at least 12 or more characters.</source>
 			</trans-unit>
 
