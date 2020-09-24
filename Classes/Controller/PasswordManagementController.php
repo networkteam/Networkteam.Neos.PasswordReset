@@ -48,12 +48,6 @@ class PasswordManagementController extends ActionController
     protected $accountRepository;
 
     /**
-     * @var PasswordResetTokenRepository
-     * @Flow\Inject
-     */
-    protected $passwordResetTokenRepository;
-
-    /**
      * @var \Networkteam\Neos\PasswordReset\Domain\Services\Mailer
      * @Flow\Inject
      */
@@ -152,6 +146,31 @@ class PasswordManagementController extends ActionController
 
     }
 
+    public function requestResetWithTokenAction(string $token, string $referrerNodeIdentifier, string $redirectNodeIdentifier, string $resetNodeIdentifier)
+    {
+        $passwordResetToken = $this->tokenService->getPasswortResetToken($token);
+
+        if ($passwordResetToken !== null) {
+            $arguments = [
+                'email' => $passwordResetToken->getAccount()->getAccountIdentifier(),
+                'redirectNodeIdentifier' => $redirectNodeIdentifier,
+                'resetNodeIdentifier' => $resetNodeIdentifier
+            ];
+
+            $this->forward('requestReset', null, null, $arguments);
+        }
+        else {
+            $redirectNode = $this->getTargetNode($referrerNodeIdentifier);
+
+            $this->redirectToNode(
+                $redirectNode,
+                [
+                    'token' => $token
+                ]
+            );
+        }
+    }
+
     /**
      * @param string $token
      * @param string $newPassword
@@ -169,14 +188,11 @@ class PasswordManagementController extends ActionController
     {
         $matchedNode = $this->getTargetNode($nodeIdentifier);
         $matchedRedirectNode = $this->getTargetNode($redirectNodeIdentifier);
-        $validationDate = new \DateTime('now - 24 hours');
-
-        /** @var PasswordResetToken $passwordResetToken */
-        $passwordResetToken = $this->passwordResetTokenRepository->findOneByToken($token);
+        $passwordResetToken = $this->tokenService->getPasswortResetToken($token);
 
         // TODO: validate token -> if it was used before it must be invalid
-        if ($passwordResetToken === null || $passwordResetToken->getCreatedAt() <= $validationDate) {
-            $this->emitResetTokenIsInvalid($passwordResetToken, $validationDate);
+        if ($this->tokenService->isValidTokenString($token)) {
+            $this->emitResetTokenIsInvalid($passwordResetToken, $this->tokenService->getTokenValidationDate());
             $this->addFlashMessage(
                 $this->translator->translateById('passwordManagement.reset.tokenInvalid.body', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset'),
                 $this->translator->translateById('passwordManagement.reset.tokenInvalid.title', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset')
@@ -189,6 +205,7 @@ class PasswordManagementController extends ActionController
                 ]
             );
         }
+
 
         // passwords do not match
         if ($newPassword !== $passwordRepeat) {
@@ -237,7 +254,7 @@ class PasswordManagementController extends ActionController
         }
 
         $this->accountRepository->update($passwordResetToken->getAccount());
-        $this->passwordResetTokenRepository->remove($passwordResetToken);
+        $this->tokenService->removeToken($passwordResetToken);
         $this->persistenceManager->persistAll();
 
         try {
