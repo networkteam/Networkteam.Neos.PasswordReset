@@ -7,7 +7,7 @@
     ],
     "require": {
         "neos/fusion-afx": "*",
-        "neos/neos": "*",
+        "neos/neos": "~4.0",
         "donatj/phpuseragentparser": "*"
     },
     "autoload": {
