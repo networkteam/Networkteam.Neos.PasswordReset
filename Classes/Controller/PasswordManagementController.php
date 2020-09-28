@@ -191,7 +191,7 @@ class PasswordManagementController extends ActionController
         $passwordResetToken = $this->tokenService->getPasswortResetToken($token);
 
         // TODO: validate token -> if it was used before it must be invalid
-        if ($this->tokenService->isValidTokenString($token)) {
+        if (!$this->tokenService->isValidTokenString($token)) {
             $this->emitResetTokenIsInvalid($passwordResetToken, $this->tokenService->getTokenValidationDate());
             $this->addFlashMessage(
                 $this->translator->translateById('passwordManagement.reset.tokenInvalid.body', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset'),
@@ -205,7 +205,6 @@ class PasswordManagementController extends ActionController
                 ]
             );
         }
-
 
         // passwords do not match
         if ($newPassword !== $passwordRepeat) {
