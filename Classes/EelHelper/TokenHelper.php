@@ -17,13 +17,25 @@ class TokenHelper implements ProtectedContextAwareInterface
      */
     protected $tokenService;
 
-    public function isValid(string $token): bool
+    /**
+     * @param string $token
+     * @return bool
+     */
+    public function isValid($token): bool
     {
+        $token = (string)$token;
+
         return $this->tokenService->isValidTokenString($token);
     }
 
-    public function isToken(string $token): bool
+    /**
+     * @param string $token
+     * @return bool
+     */
+    public function isToken($token): bool
     {
+        $token = (string)$token;
+
         return $this->tokenService->isToken($token);
     }
 
