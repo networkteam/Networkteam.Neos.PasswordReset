@@ -95,6 +95,14 @@ class PasswordManagementController extends ActionController
      */
     protected $authenticationManager;
 
+    public function initializeRequestResetAction()
+    {
+        if ($this->request->hasArgument('email')) {
+            $email = $this->request->getArgument('email');
+            $this->request->setArgument('email', mb_strtolower($email));
+        }
+    }
+
     /**
      * @param string $email
      * @param string $redirectNodeIdentifier Identifier of node for redirect
