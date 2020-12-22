@@ -25,6 +25,12 @@ class Mailer
     protected $senderAddress;
 
     /**
+     * @Flow\InjectConfiguration("tokenLifetime")
+     * @var string
+     */
+    protected $tokenLifetime;
+
+    /**
      * @var \Neos\Flow\I18n\Translator
      * @Flow\Inject
      */
@@ -72,6 +78,7 @@ class Mailer
 
         $viewVariables = [
             'token' => $token,
+            'token_lifetime' => $this->tokenLifetime,
             'email' => $email,
             'node' => $passwordResetPage,
             'operating_system' => $uaInfo['platform'],
