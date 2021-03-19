@@ -2,28 +2,31 @@ prototype(Networkteam.Neos.PasswordReset:FormHandler) < prototype(Neos.Neos:Cont
 
     renderer = Neos.Fusion:Case {
         requestAccepted {
-            condition = ${request.httpRequest.arguments.resetEmail}
+            condition = ${request.arguments.resetEmail}
             renderer = Networkteam.Neos.PasswordReset:Components.Atoms.RequestAccepted
         }
 
-        resetForm {
-            condition = ${request.httpRequest.arguments.token}
-            renderer = Networkteam.Neos.PasswordReset:Components.Atoms.ResetForm
-        }
-
         resetSucceeded {
-            condition = ${request.httpRequest.arguments.resetSuccess && request.httpRequest.arguments.resetSuccess == 'true'}
+            condition = ${request.arguments.resetSuccess && request.arguments.resetSuccess == 'true'}
             renderer = Networkteam.Neos.PasswordReset:Components.Atoms.ResetSucceeded
         }
 
         resetError {
-            condition = ${request.httpRequest.arguments.resetSuccess && request.httpRequest.arguments.resetSuccess == 'false'}
-            renderer = Networkteam.Neos.PasswordReset:Components.Atoms.ResetError
+            condition = ${request.arguments.resetSuccess && request.arguments.resetSuccess == 'false'}
+            renderer = afx`
+                <Networkteam.Neos.PasswordReset:Components.Atoms.ResetError />
+                <Networkteam.Neos.PasswordReset:Components.Atoms.ResetForm />
+            `
         }
 
-        loginFailed {
-            condition = ${request.httpRequest.arguments.loginSuccess && request.httpRequest.arguments.loginSuccess == 'false'}
+        loginAfterResetFailed {
+            condition = ${request.arguments.loginSuccess && request.arguments.loginSuccess == 'false'}
             renderer = Networkteam.Neos.PasswordReset:Components.Atoms.LoginError
+        }
+
+        resetForm {
+            condition = ${request.arguments.token}
+            renderer = Networkteam.Neos.PasswordReset:Components.Atoms.ResetForm
         }
 
         changeForm {
@@ -33,7 +36,9 @@ prototype(Networkteam.Neos.PasswordReset:FormHandler) < prototype(Neos.Neos:Cont
 
         requestForm {
             condition = ${true}
-            renderer = Networkteam.Neos.PasswordReset:Components.Atoms.RequestForm
+            renderer = Networkteam.Neos.PasswordReset:Components.Atoms.RequestForm {
+                token = ${request}
+            }
             @position = 'end'
         }
     }
