@@ -5,7 +5,7 @@ prototype(Networkteam.Neos.PasswordReset:Components.Atoms.ResetForm) < prototype
         action = 'reset'
     }
 
-    token = ${String.htmlSpecialChars(request.httpRequest.arguments.token)}
+    token = ${String.htmlSpecialChars(request.arguments.token)}
     nodeIdentifier = ${q(node).property('_identifier')}
 
     renderer = afx`

@@ -2,15 +2,15 @@ prototype(Networkteam.Neos.PasswordReset:Components.Atoms.ResetError) < prototyp
 
     errorMessage = Neos.Fusion:Case {
         invalidToken {
-            condition = ${request.httpRequest.arguments.error == 'invalidToken'}
+            condition = ${request.arguments.error == 'invalidToken'}
             renderer = 'The token was invalid, request a new token'
         }
         passwordMissmatch {
-            condition = ${request.httpRequest.arguments.error == 'passwordNoMatch'}
+            condition = ${request.arguments.error == 'passwordNoMatch'}
             renderer = 'The provided passwords did not match'
         }
         passwordPatternError {
-            condition = ${request.httpRequest.arguments.error == 'passwordPatternError'}
+            condition = ${request.arguments.error == 'passwordPatternError'}
             renderer = 'The given password does not match the demanded pattern.'
         }
         default {

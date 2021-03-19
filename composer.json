@@ -8,7 +8,8 @@
     "require": {
         "neos/fusion-afx": "*",
         "neos/neos": "~5.0",
-        "donatj/phpuseragentparser": "*"
+        "donatj/phpuseragentparser": "*",
+        "neos/swiftmailer": "*"
     },
     "autoload": {
         "psr-4": {
