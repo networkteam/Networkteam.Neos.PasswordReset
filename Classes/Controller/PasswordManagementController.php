@@ -19,6 +19,8 @@ use Neos\Flow\Security\Exception\AuthenticationRequiredException;
 use Neos\Flow\Validation\Exception\InvalidValidationOptionsException;
 use Neos\Flow\Validation\Validator\RegularExpressionValidator;
 use Networkteam\Neos\PasswordReset\Domain\Model\PasswordResetToken;
+use Networkteam\Neos\PasswordReset\Helper\FlashMessageHelper;
+use Networkteam\Neos\PasswordReset\Helper\FlashMessageHelperFactory;
 
 class PasswordManagementController extends ActionController
 {
@@ -200,7 +202,7 @@ class PasswordManagementController extends ActionController
         // TODO: validate token -> if it was used before it must be invalid
         if (!$this->tokenService->isValidTokenString($token)) {
             $this->emitResetTokenIsInvalid($passwordResetToken, $this->tokenService->getTokenValidationDate());
-            $this->addFlashMessage(
+            $this->getFlashMessageHelper()->addErrorMessage(
                 $this->translator->translateById('passwordManagement.reset.tokenInvalid.body', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset'),
                 $this->translator->translateById('passwordManagement.reset.tokenInvalid.title', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset')
             );
@@ -216,7 +218,7 @@ class PasswordManagementController extends ActionController
         // passwords do not match
         if ($newPassword !== $passwordRepeat) {
             $this->emitPasswordMismatchInResetAction($passwordResetToken, $newPassword, $passwordRepeat, $matchedNode, $matchedRedirectNode);
-            $this->addFlashMessage(
+            $this->getFlashMessageHelper()->addErrorMessage(
                 $this->translator->translateById('passwordManagement.reset.passwordNoMatch.body', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset'),
                 $this->translator->translateById('passwordManagement.reset.passwordNoMatch.title', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset')
             );
@@ -238,7 +240,7 @@ class PasswordManagementController extends ActionController
             $defaultPasswordPatternDescription = $this->translator->translateById('passwordManagement.passwordPatternDescription', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset');
             $passwordPatternDescription = $this->getPasswordPatternDescription($matchedNode) ?? $defaultPasswordPatternDescription;
 
-            $this->addFlashMessage(
+            $this->getFlashMessageHelper()->addErrorMessage(
                 $this->translator->translateById('passwordManagement.passwordPatternError.body', [$passwordPatternDescription], null,null, 'Main', 'Networkteam.Neos.PasswordReset'),
                 $this->translator->translateById('passwordManagement.passwordPatternError.title', [], null, null,'Main', 'Networkteam.Neos.PasswordReset')
             );
@@ -277,7 +279,7 @@ class PasswordManagementController extends ActionController
             );
         } catch (AuthenticationRequiredException $exception) {
             $this->emitFailedToAuthenticateAccount($passwordResetToken->getAccount(), $newPassword, $matchedNode, $matchedRedirectNode);
-            $this->addFlashMessage(
+            $this->getFlashMessageHelper()->addErrorMessage(
                 $this->translator->translateById('passwordManagement.reset.loginFailed.body', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset'),
                 $this->translator->translateById('passwordManagement.reset.loginFailed.title', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset')
             );
@@ -314,7 +316,7 @@ class PasswordManagementController extends ActionController
         // invalid password
         if (!$this->hashService->validatePassword($currentPassword, $account->getCredentialsSource())) {
             $this->emitCurrentPasswordIsInvalid($account, $currentPassword, $matchedNode);
-            $this->addFlashMessage(
+            $this->getFlashMessageHelper()->addErrorMessage(
                 $this->translator->translateById('passwordManagement.change.currentPasswordInvalid.body', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset'),
                 $this->translator->translateById('passwordManagement.change.currentPasswordInvalid.title', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset')
             );
@@ -331,7 +333,7 @@ class PasswordManagementController extends ActionController
         // passwords do not match
         if ($newPassword !== $passwordRepeat) {
             $this->emitPasswordMismatchInChangeAction($account, $newPassword, $passwordRepeat, $matchedNode);
-            $this->addFlashMessage(
+            $this->getFlashMessageHelper()->addErrorMessage(
                 $this->translator->translateById('passwordManagement.change.passwordNoMatch.body', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset'),
                 $this->translator->translateById('passwordManagement.change.passwordNoMatch.title', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset')
             );
@@ -353,7 +355,7 @@ class PasswordManagementController extends ActionController
             $defaultPasswordPatternDescription = $this->translator->translateById('passwordManagement.passwordPatternDescription', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset');
             $passwordPatternDescription = $this->getPasswordPatternDescription($matchedNode) ?? $defaultPasswordPatternDescription;
 
-            $this->addFlashMessage(
+            $this->getFlashMessageHelper()->addErrorMessage(
                 $this->translator->translateById('passwordManagement.passwordPatternError.body', [$passwordPatternDescription], null,null, 'Main', 'Networkteam.Neos.PasswordReset'),
                 $this->translator->translateById('passwordManagement.passwordPatternError.title', [], null, null,'Main', 'Networkteam.Neos.PasswordReset')
             );
@@ -375,7 +377,7 @@ class PasswordManagementController extends ActionController
             $this->emitPasswordHasBeenChanged($account, $newPassword, $matchedNode);
         }
 
-        $this->addFlashMessage(
+        $this->getFlashMessageHelper()->addErrorMessage(
             $this->translator->translateById('passwordManagement.change.success.body', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset'),
             $this->translator->translateById('passwordManagement.change.success.title', [], null, null, 'Main', 'Networkteam.Neos.PasswordReset')
         );
@@ -648,6 +650,11 @@ class PasswordManagementController extends ActionController
         }
 
         return $passwordPatternDescription;
+    }
+
+    protected function getFlashMessageHelper(): FlashMessageHelper
+    {
+        return FlashMessageHelperFactory::create($this->request);
     }
 
 }
