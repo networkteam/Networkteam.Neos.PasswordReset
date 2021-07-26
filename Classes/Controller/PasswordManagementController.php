@@ -11,7 +11,6 @@ use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Mvc\ActionRequest;
 use Neos\Flow\Mvc\ActionResponse;
 use Neos\Flow\Mvc\Controller\ActionController;
-use Neos\Flow\Mvc\RequestInterface;
 use Neos\Flow\Security\Account;
 use Neos\Flow\Security\Authentication\AuthenticationManagerInterface;
 use Neos\Flow\Security\Authentication\Token\UsernamePassword;

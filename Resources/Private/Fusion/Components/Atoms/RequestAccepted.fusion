@@ -1,6 +1,6 @@
 prototype(Networkteam.Neos.PasswordReset:Components.Atoms.RequestAccepted) < prototype(Neos.Neos:ContentComponent) {
 
-    email = ${String.htmlSpecialChars(request.httpRequest.arguments.resetEmail)}
+    email = ${String.htmlSpecialChars(request.arguments.resetEmail)}
 
     renderer = afx`
         <div class="password-reset">
@@ -11,7 +11,7 @@ prototype(Networkteam.Neos.PasswordReset:Components.Atoms.RequestAccepted) < pro
     @cache {
         mode = 'uncached'
         context {
-            1 = 'request.httpRequest.arguments'
+            1 = 'request.arguments'
         }
     }
 }
