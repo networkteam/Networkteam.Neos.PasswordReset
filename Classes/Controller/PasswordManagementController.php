@@ -8,9 +8,9 @@ namespace Networkteam\Neos\PasswordReset\Controller;
 use Neos\ContentRepository\Domain\Model\NodeInterface;
 use Neos\Error\Messages\Result;
 use Neos\Flow\Annotations as Flow;
-use Neos\Flow\Http\Response;
+use Neos\Flow\Mvc\ActionRequest;
+use Neos\Flow\Mvc\ActionResponse;
 use Neos\Flow\Mvc\Controller\ActionController;
-use Neos\Flow\Mvc\RequestInterface;
 use Neos\Flow\Security\Account;
 use Neos\Flow\Security\Authentication\AuthenticationManagerInterface;
 use Neos\Flow\Security\Authentication\Token\UsernamePassword;
@@ -19,7 +19,6 @@ use Neos\Flow\Security\Exception\AuthenticationRequiredException;
 use Neos\Flow\Validation\Exception\InvalidValidationOptionsException;
 use Neos\Flow\Validation\Validator\RegularExpressionValidator;
 use Networkteam\Neos\PasswordReset\Domain\Model\PasswordResetToken;
-use Networkteam\Neos\PasswordReset\Domain\Repository\PasswordResetTokenRepository;
 
 class PasswordManagementController extends ActionController
 {
@@ -421,15 +420,15 @@ class PasswordManagementController extends ActionController
 
     /**
      * @param Account $account
-     * @param RequestInterface $request
-     * @param Response $response
+     * @param ActionRequest $request
+     * @param ActionResponse $response
      * @param NodeInterface $resetDocumentNode
      * @FLow\Signal
      */
     protected function emitAccountForRequestedResetIsInactive(
         Account $account,
-        RequestInterface $request,
-        Response $response,
+        ActionRequest $request,
+        ActionResponse $response,
         NodeInterface $resetDocumentNode
     ): void
     {
