@@ -1,0 +1,6 @@
+prototype(Networkteam.Neos.PasswordReset:FlashMessages) {
+    @class = 'Networkteam\\Neos\\PasswordReset\\Fusion\\FlashMessagesImplementation'
+
+    severity = null
+    httpRequest = ${request.httpRequest}
+}

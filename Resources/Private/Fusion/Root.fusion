@@ -1,7 +1,1 @@
 include: **/*.fusion
-
-prototype(Networkteam.Neos.PasswordReset:FlashMessages) {
-    @class = 'Networkteam\\Neos\\PasswordReset\\Fusion\\FlashMessagesImplementation'
-
-    severity = null
-}
