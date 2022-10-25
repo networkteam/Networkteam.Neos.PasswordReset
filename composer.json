@@ -7,7 +7,7 @@
     ],
     "require": {
         "neos/fusion-afx": "*",
-        "neos/neos": "~5.0 || ~7.0",
+        "neos/neos": "~5.0 || ~7.0 | ~8.0",
         "donatj/phpuseragentparser": "*",
         "neos/swiftmailer": "*"
     },
