@@ -99,7 +99,8 @@
             "Neos.NodeTypes-20200120114136",
             "Networkteam.Neos.MailObfuscator-20190919145400",
             "Neos.Flow-20200813181400",
-            "Neos.Flow-20201003165200"
+            "Neos.Flow-20201003165200",
+            "Neos.Flow-20201109224100"
         ]
     }
 }
