@@ -11,7 +11,7 @@ prototype(Networkteam.Neos.PasswordReset:Components.Atoms.RequestForm) < prototy
         <div class="password-reset">
             <form action={props.formAction} method="post">
                 <label for="password-reset-email-address">E-Mailaddresse:</label>
-                <input type="email" name="email" />
+                <input type="email" name="email" required />
                 <input type="hidden" name="redirectNodeIdentifier" value={node.identifier} />
                 <input type="hidden" name="resetNodeIdentifier" value={node.identifier} />
                 <button class="btn btn-primary" type="submit">Password reset</button>
