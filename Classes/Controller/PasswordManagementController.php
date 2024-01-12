@@ -115,6 +115,15 @@ class PasswordManagementController extends ActionController
      */
     public function requestResetAction(string $email, string $redirectNodeIdentifier, string $resetNodeIdentifier): void
     {
+
+        $redirectNode = $this->getTargetNode($redirectNodeIdentifier);
+        $resetNode = $this->getTargetNode($resetNodeIdentifier);
+
+        if ($email === "") {
+            $this->request->setArgument('resetSuccess', false);
+            $this->redirectToNode($redirectNode);
+        }
+
         $account = null;
         foreach($this->settings['authenticationProviders'] as $authenticationProviderName) {
             $account = $this->accountRepository->findByAccountIdentifierAndAuthenticationProviderName($email, $authenticationProviderName);
@@ -122,9 +131,6 @@ class PasswordManagementController extends ActionController
                 break;
             }
         }
-
-        $redirectNode = $this->getTargetNode($redirectNodeIdentifier);
-        $resetNode = $this->getTargetNode($resetNodeIdentifier);
 
         if ($account === null) {
             $this->emitAccountForRequestedResetIsNotFound($email, $redirectNode);
