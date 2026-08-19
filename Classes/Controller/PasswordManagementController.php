@@ -35,12 +35,6 @@ class PasswordManagementController extends ActionController
     protected $linkService;
 
     /**
-     * @var \Neos\Neos\Domain\Service\ContentContextFactory
-     * @Flow\Inject
-     */
-    protected $contentContextFactory;
-
-    /**
      * @var \Neos\Flow\Security\AccountRepository
      * @Flow\Inject
      */
@@ -396,12 +390,12 @@ class PasswordManagementController extends ActionController
 
     /**
      * @param string $nodeIdentifier
-     * @return NodeInterface|null
+     * @return \Neos\ContentRepository\Core\Projection\ContentGraph\Node|null
      * @throws \Neos\Eel\Exception
      */
-    protected function getTargetNode(string $nodeIdentifier): ?NodeInterface
+    protected function getTargetNode(string $nodeIdentifier): ?\Neos\ContentRepository\Core\Projection\ContentGraph\Node
     {
-        $contentContext = $this->contentContextFactory->create([
+        $contentContext = new \Neos\Rector\ContentRepository90\Legacy\LegacyContextStub([
             'workspaceName' => 'live',
             'invisibleContentShown' => false,
             'inaccessibleContentShown' => false
@@ -417,10 +411,10 @@ class PasswordManagementController extends ActionController
 
     /**
      * @param string $accountIdentifier
-     * @param NodeInterface $resetDocumentNode
+     * @param \Neos\ContentRepository\Core\Projection\ContentGraph\Node $resetDocumentNode
      * @FLow\Signal
      */
-    protected function emitAccountForRequestedResetIsNotFound(string $accountIdentifier, NodeInterface $resetDocumentNode): void
+    protected function emitAccountForRequestedResetIsNotFound(string $accountIdentifier, \Neos\ContentRepository\Core\Projection\ContentGraph\Node $resetDocumentNode): void
     {
     }
 
@@ -428,14 +422,14 @@ class PasswordManagementController extends ActionController
      * @param Account $account
      * @param ActionRequest $request
      * @param ActionResponse $response
-     * @param NodeInterface $resetDocumentNode
+     * @param \Neos\ContentRepository\Core\Projection\ContentGraph\Node $resetDocumentNode
      * @FLow\Signal
      */
     protected function emitAccountForRequestedResetIsInactive(
         Account $account,
         ActionRequest $request,
         ActionResponse $response,
-        NodeInterface $resetDocumentNode
+        \Neos\ContentRepository\Core\Projection\ContentGraph\Node $resetDocumentNode
     ): void
     {
     }
@@ -452,10 +446,10 @@ class PasswordManagementController extends ActionController
     /**
      * @param Account $account
      * @param PasswordResetToken $token
-     * @param NodeInterface $resetDocumentNode
+     * @param \Neos\ContentRepository\Core\Projection\ContentGraph\Node $resetDocumentNode
      * @FLow\Signal
      */
-    protected function emitCreatedPasswordResetTokenForAccount(Account $account, PasswordResetToken $token, NodeInterface $resetDocumentNode): void
+    protected function emitCreatedPasswordResetTokenForAccount(Account $account, PasswordResetToken $token, \Neos\ContentRepository\Core\Projection\ContentGraph\Node $resetDocumentNode): void
     {
     }
 
@@ -463,15 +457,15 @@ class PasswordManagementController extends ActionController
      * @param PasswordResetToken $token
      * @param string $newPassword
      * @param string $passwordRepeat
-     * @param NodeInterface|null $matchedNode
-     * @param NodeInterface|null $matchedRedirectNode
+     * @param \Neos\ContentRepository\Core\Projection\ContentGraph\Node|null $matchedNode
+     * @param \Neos\ContentRepository\Core\Projection\ContentGraph\Node|null $matchedRedirectNode
      */
     protected function emitPasswordMismatchInResetAction(
         PasswordResetToken $token,
         string $newPassword,
         string $passwordRepeat,
-        ?NodeInterface $matchedNode,
-        ?NodeInterface $matchedRedirectNode
+        ?\Neos\ContentRepository\Core\Projection\ContentGraph\Node $matchedNode,
+        ?\Neos\ContentRepository\Core\Projection\ContentGraph\Node $matchedRedirectNode
     ): void
     {
     }
@@ -480,15 +474,15 @@ class PasswordManagementController extends ActionController
      * @param PasswordResetToken $token
      * @param string $newPassword
      * @param Result $errorResult
-     * @param NodeInterface|null $matchedNode
-     * @param NodeInterface|null $matchedRedirectNode
+     * @param \Neos\ContentRepository\Core\Projection\ContentGraph\Node|null $matchedNode
+     * @param \Neos\ContentRepository\Core\Projection\ContentGraph\Node|null $matchedRedirectNode
      */
     protected function emitPasswordPatternErrorInResetAction(
         PasswordResetToken $token,
         string $newPassword,
         Result $errorResult,
-        ?NodeInterface $matchedNode,
-        ?NodeInterface $matchedRedirectNode
+        ?\Neos\ContentRepository\Core\Projection\ContentGraph\Node $matchedNode,
+        ?\Neos\ContentRepository\Core\Projection\ContentGraph\Node $matchedRedirectNode
     ): void
     {
     }
@@ -496,14 +490,14 @@ class PasswordManagementController extends ActionController
     /**
      * @param Account $getAccount
      * @param string $newPassword
-     * @param NodeInterface|null $matchedNode
-     * @param NodeInterface|null $matchedRedirectNode
+     * @param \Neos\ContentRepository\Core\Projection\ContentGraph\Node|null $matchedNode
+     * @param \Neos\ContentRepository\Core\Projection\ContentGraph\Node|null $matchedRedirectNode
      */
     protected function emitAuthenticationAttemptHasBeenMade(
         Account $getAccount,
         string $newPassword,
-        ?NodeInterface $matchedNode,
-        ?NodeInterface $matchedRedirectNode
+        ?\Neos\ContentRepository\Core\Projection\ContentGraph\Node $matchedNode,
+        ?\Neos\ContentRepository\Core\Projection\ContentGraph\Node $matchedRedirectNode
     ): void
     {
     }
@@ -511,14 +505,14 @@ class PasswordManagementController extends ActionController
     /**
      * @param Account $getAccount
      * @param string $newPassword
-     * @param NodeInterface|null $matchedNode
-     * @param NodeInterface|null $matchedRedirectNode
+     * @param \Neos\ContentRepository\Core\Projection\ContentGraph\Node|null $matchedNode
+     * @param \Neos\ContentRepository\Core\Projection\ContentGraph\Node|null $matchedRedirectNode
      */
     protected function emitFailedToAuthenticateAccount(
         Account $getAccount,
         string $newPassword,
-        ?NodeInterface $matchedNode,
-        ?NodeInterface $matchedRedirectNode
+        ?\Neos\ContentRepository\Core\Projection\ContentGraph\Node $matchedNode,
+        ?\Neos\ContentRepository\Core\Projection\ContentGraph\Node $matchedRedirectNode
     ): void
     {
     }
@@ -526,12 +520,12 @@ class PasswordManagementController extends ActionController
     /**
      * @param Account $account
      * @param string $currentPassword
-     * @param NodeInterface|null $matchedNode
+     * @param \Neos\ContentRepository\Core\Projection\ContentGraph\Node|null $matchedNode
      */
     protected function emitCurrentPasswordIsInvalid(
         Account $account,
         string $currentPassword,
-        ?NodeInterface $matchedNode
+        ?\Neos\ContentRepository\Core\Projection\ContentGraph\Node $matchedNode
     ): void
     {
     }
@@ -539,7 +533,7 @@ class PasswordManagementController extends ActionController
     protected function emitPasswordHasBeenChanged(
         Account $account,
         string $newPassword,
-        ?NodeInterface $matchedNode
+        ?\Neos\ContentRepository\Core\Projection\ContentGraph\Node $matchedNode
     ): void
     {
     }
@@ -548,7 +542,7 @@ class PasswordManagementController extends ActionController
         Account $account,
         string $newPassword,
         string $passwordRepeat,
-        ?NodeInterface $matchedNode
+        ?\Neos\ContentRepository\Core\Projection\ContentGraph\Node $matchedNode
     ): void
     {
     }
@@ -556,7 +550,7 @@ class PasswordManagementController extends ActionController
     protected function emitPasswordPatternErrorInChangeAction(
         string $newPassword,
         Result $errorResult,
-        ?NodeInterface $matchedNode
+        ?\Neos\ContentRepository\Core\Projection\ContentGraph\Node $matchedNode
     ): void
     {
     }
@@ -612,7 +606,7 @@ class PasswordManagementController extends ActionController
         $this->authenticationManager->authenticate();
     }
 
-    protected function redirectToNode(?NodeInterface $node, $arguments = []): void
+    protected function redirectToNode(?\Neos\ContentRepository\Core\Projection\ContentGraph\Node $node, $arguments = []): void
     {
         $redirectTarget = $this->linkService->createNodeUri(
             $this->getControllerContext(),
@@ -642,7 +636,7 @@ class PasswordManagementController extends ActionController
         return $validator->validate($value);
     }
 
-    protected function getPasswordPatternDescription(NodeInterface $node): ?string
+    protected function getPasswordPatternDescription(\Neos\ContentRepository\Core\Projection\ContentGraph\Node $node): ?string
     {
         try {
             $passwordPatternDescription = trim($node->getProperty('passwordPatternDescription'));

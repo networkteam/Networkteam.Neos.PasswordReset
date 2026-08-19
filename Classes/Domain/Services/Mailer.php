@@ -42,7 +42,7 @@ class Mailer
      */
     protected $partyRepository;
 
-    public function sendNoAccountMail(string $email, NodeInterface $passwordResetPage)
+    public function sendNoAccountMail(string $email, \Neos\ContentRepository\Core\Projection\ContentGraph\Node $passwordResetPage)
     {
         $translateId = 'mail.noAccountSubject';
         $subject = $this->translateById($translateId);
@@ -68,7 +68,7 @@ class Mailer
     }
 
 
-    public function sendResetPasswordMail(string $email, NodeInterface $passwordResetPage, PasswordResetToken $token)
+    public function sendResetPasswordMail(string $email, \Neos\ContentRepository\Core\Projection\ContentGraph\Node $passwordResetPage, PasswordResetToken $token)
     {
         $translateId = 'mail.noAccountSubject';
         $subject = $this->translateById($translateId);
